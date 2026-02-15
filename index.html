@@ -6,6 +6,7 @@
     <title>CLICKWAR ONLINE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         body {
             background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
@@ -18,8 +19,8 @@
         
         h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 5px 0; font-size: 24px; }
 
-        /* ЭФФЕКТЫ */
-        #boss-container { position: relative; display: inline-block; margin: 35px 0; z-index: 1; }
+        /* ЭФФЕКТЫ БОССА */
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; z-index: 1; }
         #boss { width: 230px; position: relative; z-index: 10; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
         #boss:active { transform: scale(0.92); }
 
@@ -43,9 +44,9 @@
         @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulseGlow { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.3); opacity: 0.5; } }
 
+        /* ИНТЕРФЕЙС */
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; }
         .bal-text { color: #ffd700; font-size: 22px; font-weight: bold; }
-        
         .shop { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
         .upgrade-card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
         .upgrade-card button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
@@ -58,10 +59,11 @@
         }
         @keyframes floatDamage { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
 
+        /* ОКНО РЕЙТИНГА */
         #leaderboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
         .leaderboard-window { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 80vh; overflow-y: auto; }
         .leader-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
-        .close-btn { margin-top: 20px; padding: 10px 30px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; }
+        .close-btn { margin-top: 20px; padding: 10px 30px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -101,18 +103,25 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
     
-    // ТВОИ КЛЮЧИ SUPABASE
+    // НАСТРОЙКИ SUPABASE
     const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co"; 
     const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
     
     let supabaseClient = null;
+
+    // Инициализация с проверкой
     try {
-        supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    } catch(e) { console.error("Cloud Error"); }
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        }
+    } catch(e) { console.error("Ошибка Supabase"); }
 
     const user = tg.initDataUnsafe?.user;
-    if (user) document.getElementById('user-display').innerText = `⚔️ ${user.first_name}`;
+    const userName = user ? user.first_name : "Игрок";
+    const userId = user ? user.id : 999;
+    document.getElementById('user-display').innerText = `⚔️ ${userName}`;
 
+    // Состояние игры
     let state = { hp: 1000000, bal: 0, pwr: 1, auto: 0, costPwr: 50, costAuto: 150 };
     const saved = localStorage.getItem('cw_v_final_cloud');
     if (saved) state = JSON.parse(saved);
@@ -127,17 +136,19 @@
         localStorage.setItem('cw_v_final_cloud', JSON.stringify(state));
     }
 
+    // Сохранение в облако
     async function saveToCloud() {
-        if (!user || !supabaseClient) return;
+        if (!supabaseClient) return;
         try {
             await supabaseClient.from('leaderboard').upsert({ 
-                id: user.id, 
-                name: user.first_name, 
+                id: userId, 
+                name: userName, 
                 score: Math.floor(state.bal) 
             });
-        } catch (e) { console.warn("Sync failed"); }
+        } catch (e) { console.warn("Cloud save error"); }
     }
 
+    // Клик по боссу
     function handleHit(e) {
         if(e.type === 'touchstart') e.preventDefault();
         
@@ -146,23 +157,20 @@
         
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-        // Создаем текст урона
         const text = document.createElement('div');
         text.className = 'damage-text';
         text.innerText = `-${state.pwr}`;
-        
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        
         text.style.left = `${x - 15}px`;
         text.style.top = `${y - 30}px`;
-        
         document.body.appendChild(text);
         setTimeout(() => text.remove(), 700);
 
         updateUI();
     }
 
+    // Покупка
     function buy(type) {
         if (type === 'pwr' && state.bal >= state.costPwr) {
             state.bal -= state.costPwr; state.pwr += 1;
@@ -175,6 +183,7 @@
         saveToCloud();
     }
 
+    // Загрузка рейтинга
     async function toggleLeaderboard() {
         const ov = document.getElementById('leaderboard-overlay');
         const isOpening = ov.style.display !== 'block';
@@ -184,27 +193,47 @@
             const list = document.getElementById('leaderboard-list');
             list.innerText = "Загрузка...";
             
+            if (!supabaseClient) {
+                list.innerText = "Ошибка: Библиотека базы не загружена!";
+                return;
+            }
+
             try {
-                const { data, error } = await supabaseClient.from('leaderboard')
-                    .select('*').order('score', { ascending: false }).limit(10);
+                const { data, error } = await supabaseClient
+                    .from('leaderboard')
+                    .select('*')
+                    .order('score', { ascending: false })
+                    .limit(10);
                 
                 if (error) throw error;
 
-                list.innerHTML = data.map((p, i) => `
-                    <div class="leader-item" style="${p.id == user?.id ? 'color:#00d2ff; font-weight:bold;' : ''}">
-                        <span>${i+1}. ${p.name} ${p.id == user?.id ? '(ВЫ)' : ''}</span>
-                        <span style="color:#ffd700">${p.score.toLocaleString()}</span>
-                    </div>
-                `).join('');
+                if (data.length === 0) {
+                    list.innerText = "Рейтинг пуст. Стань первым!";
+                } else {
+                    list.innerHTML = data.map((p, i) => `
+                        <div class="leader-item" style="${p.id == userId ? 'color:#00d2ff; font-weight:bold;' : ''}">
+                            <span>${i+1}. ${p.name} ${p.id == userId ? '(ВЫ)' : ''}</span>
+                            <span style="color:#ffd700">${p.score.toLocaleString()}</span>
+                        </div>
+                    `).join('');
+                }
             } catch (e) {
-                list.innerText = "Рейтинг временно недоступен";
+                list.innerText = "Ошибка доступа. Проверь RLS в Supabase!";
+                console.error(e);
             }
         }
     }
 
-    setInterval(() => { if (state.auto > 0) { state.hp -= state.auto; state.bal += state.auto; updateUI(); } }, 1000);
-    setInterval(saveToCloud, 15000);
+    // Таймеры
+    setInterval(() => { 
+        if (state.auto > 0) { 
+            state.hp -= state.auto; state.bal += state.auto; updateUI(); 
+        } 
+    }, 1000);
+    
+    setInterval(saveToCloud, 20000);
     updateUI();
 </script>
 </body>
-</html>
+    </html>
+    
