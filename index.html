@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>CLICKWAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.min.js"></script>
+
+  <style>
+    body {
+      background: #0f0f0f;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    #boss {
+      width: 280px;
+      cursor: pointer;
+      transition: transform 0.05s;
+      user-select: none;
+    }
+
+    #boss.hit {
+      transform: scale(0.95) rotate(-1deg);
+    }
+
+    .stats {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1> CLICKWAR </h1>
+
+<button onclick="connect()">🔗 Подключить кошелёк</button>
+
+<br><br>
+
+<img id="boss" src="boss.png" onclick="hitBoss()" />
+
+<div class="stats">
+  <p>❤️ Boss HP: <span id="hp">100.000.000.000</span></p>
+  <p>⚔️ Мои клики: <span id="clicks">...</span></p>
+  <p>🪙 CW: <span id="balance">...</span></p>
+</div>
+
+<script>
+let provider, signer, contract;
+
+const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS";
+const ABI = [
+  "function click()",
+  "function bossHP() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function clicks(address) view returns (uint256)"
+];
+
+async function connect() {
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+  contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  update();
+}
+
+async function hitBoss() {
+  if (!contract) {
+    alert("Подключи кошелёк");
+    return;
+  }
+
+  const boss = document.getElementById("boss");
+  boss.classList.add("hit");
+
+  try {
+    const tx = await contract.click();
+    await tx.wait();
+    update();
+  } catch (e) {
+    console.log(e);
+  }
+
+  setTimeout(() => boss.classList.remove("hit"), 80);
+}
+
+async function update() {
+  const hp = await contract.bossHP();
+  const addr = await signer.getAddress();
+  const bal = await contract.balanceOf(addr);
+  const cl = await contract.clicks(addr);
+
+  document.getElementById("hp").innerText = hp;
+  document.getElementById("balance").innerText = ethers.formatUnits(bal, 18);
+  document.getElementById("clicks").innerText = cl;
+}
+</script>
+
+</body>
+</html>
