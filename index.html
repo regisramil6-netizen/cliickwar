@@ -1,55 +1,93 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>CLICKWAR</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.min.js"></script>
 
   <style>
     body {
       background: #0f0f0f;
       color: white;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
-    }
-
-    #boss {
-      width: 280px;
-      cursor: pointer;
-      transition: transform 0.05s;
+      margin: 0;
+      padding: 20px;
+      overflow: hidden; /* Чтобы не было лишних скроллов */
       user-select: none;
     }
 
-    #boss.hit {
-      transform: scale(0.95) rotate(-1deg);
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #ff4d4d;
+      text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+    }
+
+    #boss {
+      width: 80%;
+      max-width: 300px;
+      cursor: pointer;
+      transition: transform 0.05s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #boss:active {
+      transform: scale(0.92);
     }
 
     .stats {
-      margin-top: 10px;
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 15px;
+    }
+
+    .stats p {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    button {
+      background: #0088cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
-
 <body>
 
-<h1> CLICKWAR </h1>
+<h1>🔥 CLICKWAR 🔥</h1>
 
-<button onclick="connect()">🔗 Подключить кошелёк</button>
+<button id="connectBtn" onclick="connect()">🔗 Подключить кошелёк</button>
 
 <br><br>
 
-<img id="boss" src="boss.png" onclick="hitBoss()" />
+<img id="boss" src="boss.png" alt="Boss" onclick="hitBoss()" />
 
 <div class="stats">
-  <p>❤️ Boss HP: <span id="hp">100.000.000.000</span></p>
-  <p>⚔️ Мои клики: <span id="clicks">...</span></p>
-  <p>🪙 CW: <span id="balance">...</span></p>
+  <p>❤️ Boss HP: <span id="hp">100.000.000</span></p>
+  <p>⚔️ Мои клики: <span id="clicks">0</span></p>
+  <p>🪙 CW: <span id="balance">0</span></p>
 </div>
 
 <script>
-let provider, signer, contract;
+// Инициализация Telegram Mini App
+const tg = window.Telegram.WebApp;
+tg.expand(); // Развернуть на всё окно
+tg.ready();
 
-const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS";
+let provider, signer, contract;
+let localClicks = 0;
+let localHP = 100000000;
+
+const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS"; // ЗАМЕНИ НА СВОЙ АДРЕС
 const ABI = [
   "function click()",
   "function bossHP() view returns (uint256)",
@@ -58,41 +96,63 @@ const ABI = [
 ];
 
 async function connect() {
-  provider = new ethers.BrowserProvider(window.ethereum);
-  signer = await provider.getSigner();
-  contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-  update();
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      document.getElementById("connectBtn").innerText = "✅ Подключено";
+      update();
+    } catch (e) {
+      console.error(e);
+      tg.showAlert("Не удалось подключить кошелек");
+    }
+  } else {
+    tg.showAlert("Кошелек не обнаружен. Внутри Telegram используй встроенный кошелек или браузер с поддержкой Web3.");
+  }
 }
 
 async function hitBoss() {
-  if (!contract) {
-    alert("Подключи кошелёк");
-    return;
+  // 1. Анимация и тактильный отклик (вибрация)
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('medium');
   }
 
-  const boss = document.getElementById("boss");
-  boss.classList.add("hit");
+  // 2. Локальное обновление интерфейса (чтобы клик был мгновенным)
+  localClicks++;
+  localHP -= 1; 
+  document.getElementById("clicks").innerText = localClicks;
+  document.getElementById("hp").innerText = localHP.toLocaleString();
 
-  try {
-    const tx = await contract.click();
-    await tx.wait();
-    update();
-  } catch (e) {
-    console.log(e);
+  // 3. Если кошелек подключен, отправляем в блокчейн
+  if (contract) {
+    try {
+      const tx = await contract.click();
+      // Не ждем tx.wait(), чтобы не тормозить игру
+      update(); 
+    } catch (e) {
+      console.log("Ошибка транзакции:", e);
+    }
   }
-
-  setTimeout(() => boss.classList.remove("hit"), 80);
 }
 
 async function update() {
-  const hp = await contract.bossHP();
-  const addr = await signer.getAddress();
-  const bal = await contract.balanceOf(addr);
-  const cl = await contract.clicks(addr);
+  if (!contract) return;
+  try {
+    const hp = await contract.bossHP();
+    const addr = await signer.getAddress();
+    const bal = await contract.balanceOf(addr);
+    const cl = await contract.clicks(addr);
 
-  document.getElementById("hp").innerText = hp;
-  document.getElementById("balance").innerText = ethers.formatUnits(bal, 18);
-  document.getElementById("clicks").innerText = cl;
+    document.getElementById("hp").innerText = hp.toString();
+    document.getElementById("balance").innerText = ethers.formatUnits(bal, 18);
+    document.getElementById("clicks").innerText = cl.toString();
+    
+    localClicks = parseInt(cl.toString());
+    localHP = parseInt(hp.toString());
+  } catch (e) {
+    console.error("Ошибка обновления данных:", e);
+  }
 }
 </script>
 
