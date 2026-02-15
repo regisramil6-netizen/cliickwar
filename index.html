@@ -3,158 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CLICKWAR</title>
+  <title>CLICKWAR ELITE</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.min.js"></script>
-
   <style>
     body {
-      background: #0f0f0f;
+      background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
       color: white;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
-      margin: 0;
-      padding: 20px;
-      overflow: hidden; /* Чтобы не было лишних скроллов */
+      margin: 0; padding: 20px;
+      overflow-x: hidden;
       user-select: none;
     }
+    h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin-bottom: 10px; }
+    
+    #boss-container { position: relative; display: inline-block; margin: 20px 0; }
+    #boss { width: 250px; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
+    #boss:active { transform: scale(0.9); }
 
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #ff4d4d;
-      text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
-    }
+    .stats { background: rgba(255, 255, 255, 0.07); padding: 15px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
+    .stats p { margin: 5px 0; font-size: 18px; font-weight: bold; }
+    .highlight { color: #00d2ff; }
 
-    #boss {
-      width: 80%;
-      max-width: 300px;
-      cursor: pointer;
-      transition: transform 0.05s;
-      -webkit-tap-highlight-color: transparent;
+    .shop { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .upgrade-card {
+      background: #222; border: 1px solid #444; padding: 10px; border-radius: 12px; width: 140px;
     }
-
-    #boss:active {
-      transform: scale(0.92);
+    .upgrade-card button {
+      background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px;
     }
-
-    .stats {
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 15px;
-      border-radius: 15px;
+    .upgrade-card button:disabled { background: #555; cursor: not-allowed; }
+    
+    .floating-text {
+      position: absolute; color: #ff4d4d; font-weight: bold; pointer-events: none;
+      animation: floatUp 0.8s ease-out forwards;
     }
-
-    .stats p {
-      margin: 10px 0;
-      font-size: 18px;
-    }
-
-    button {
-      background: #0088cc;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
   </style>
 </head>
 <body>
 
 <h1>🔥 CLICKWAR 🔥</h1>
 
-<button id="connectBtn" onclick="connect()">🔗 Подключить кошелёк</button>
-
-<br><br>
-
-<img id="boss" src="boss.png" alt="Boss" onclick="hitBoss()" />
-
 <div class="stats">
-  <p>❤️ Boss HP: <span id="hp">100.000.000</span></p>
-  <p>⚔️ Мои клики: <span id="clicks">0</span></p>
-  <p>🪙 CW: <span id="balance">0</span></p>
+  <p>❤️ BOSS HP: <span id="hp" class="highlight">1.000.000</span></p>
+  <p>🪙 БАЛАНС: <span id="balance" style="color: #ffd700;">0</span> CW</p>
+  <p style="font-size: 14px; opacity: 0.7;">Сила клика: <span id="pwr">1</span> | Авто-урон: <span id="pps">0</span>/сек</p>
+</div>
+
+<div id="boss-container">
+    <img id="boss" src="boss.png" alt="Boss" onclick="hitBoss(event)" />
+</div>
+
+<div class="shop">
+  <div class="upgrade-card">
+    <span style="font-size: 12px;">+1 к силе клика</span>
+    <button id="upg1" onclick="buyUpgrade('click')">🛒 50 CW</button>
+  </div>
+  <div class="upgrade-card">
+    <span style="font-size: 12px;">Авто-урон +1</span>
+    <button id="upg2" onclick="buyUpgrade('auto')">🛒 150 CW</button>
+  </div>
 </div>
 
 <script>
-// Инициализация Telegram Mini App
 const tg = window.Telegram.WebApp;
-tg.expand(); // Развернуть на всё окно
-tg.ready();
+tg.expand();
 
-let provider, signer, contract;
-let localClicks = 0;
-let localHP = 100000000;
+// Состояние игры
+let state = {
+    hp: 1000000,
+    balance: 0,
+    clickPower: 1,
+    autoPower: 0,
+    upg1Cost: 50,
+    upg2Cost: 150
+};
 
-const CONTRACT_ADDRESS = "0xYOUR_CONTRACT_ADDRESS"; // ЗАМЕНИ НА СВОЙ АДРЕС
-const ABI = [
-  "function click()",
-  "function bossHP() view returns (uint256)",
-  "function balanceOf(address) view returns (uint256)",
-  "function clicks(address) view returns (uint256)"
-];
-
-async function connect() {
-  if (typeof window.ethereum !== 'undefined') {
-    try {
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-      document.getElementById("connectBtn").innerText = "✅ Подключено";
-      update();
-    } catch (e) {
-      console.error(e);
-      tg.showAlert("Не удалось подключить кошелек");
-    }
-  } else {
-    tg.showAlert("Кошелек не обнаружен. Внутри Telegram используй встроенный кошелек или браузер с поддержкой Web3.");
-  }
+// Загрузка сохранений из памяти телефона
+const saved = localStorage.getItem('clickwar_save');
+if(saved) {
+    state = JSON.parse(saved);
+    updateUI();
 }
 
-async function hitBoss() {
-  // 1. Анимация и тактильный отклик (вибрация)
-  if (tg.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('medium');
-  }
-
-  // 2. Локальное обновление интерфейса (чтобы клик был мгновенным)
-  localClicks++;
-  localHP -= 1; 
-  document.getElementById("clicks").innerText = localClicks;
-  document.getElementById("hp").innerText = localHP.toLocaleString();
-
-  // 3. Если кошелек подключен, отправляем в блокчейн
-  if (contract) {
-    try {
-      const tx = await contract.click();
-      // Не ждем tx.wait(), чтобы не тормозить игру
-      update(); 
-    } catch (e) {
-      console.log("Ошибка транзакции:", e);
-    }
-  }
-}
-
-async function update() {
-  if (!contract) return;
-  try {
-    const hp = await contract.bossHP();
-    const addr = await signer.getAddress();
-    const bal = await contract.balanceOf(addr);
-    const cl = await contract.clicks(addr);
-
-    document.getElementById("hp").innerText = hp.toString();
-    document.getElementById("balance").innerText = ethers.formatUnits(bal, 18);
-    document.getElementById("clicks").innerText = cl.toString();
+function updateUI() {
+    document.getElementById("hp").innerText = Math.max(0, state.hp).toLocaleString();
+    document.getElementById("balance").innerText = Math.floor(state.balance).toLocaleString();
+    document.getElementById("pwr").innerText = state.clickPower;
+    document.getElementById("pps").innerText = state.autoPower;
+    document.getElementById("upg1").innerText = `🛒 ${state.upg1Cost}`;
+    document.getElementById("upg2").innerText = `🛒 ${state.upg2Cost}`;
     
-    localClicks = parseInt(cl.toString());
-    localHP = parseInt(hp.toString());
-  } catch (e) {
-    console.error("Ошибка обновления данных:", e);
-  }
+    // Проверка доступности кнопок
+    document.getElementById("upg1").disabled = state.balance < state.upg1Cost;
+    document.getElementById("upg2").disabled = state.balance < state.upg2Cost;
+    
+    // Сохраняем прогресс
+    localStorage.setItem('clickwar_save', JSON.stringify(state));
 }
+
+function hitBoss(event) {
+    applyDamage(state.clickPower);
+    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    
+    // Вылетающий текст урона
+    const text = document.createElement('div');
+    text.className = 'floating-text';
+    text.innerText = `-${state.clickPower}`;
+    text.style.left = `${event.clientX - 20}px`;
+    text.style.top = `${event.clientY - 20}px`;
+    document.body.appendChild(text);
+    setTimeout(() => text.remove(), 800);
+}
+
+function applyDamage(amount) {
+    state.hp -= amount;
+    state.balance += amount * 0.5; // За каждый урон даем монеты
+    updateUI();
+}
+
+function buyUpgrade(type) {
+    if(type === 'click' && state.balance >= state.upg1Cost) {
+        state.balance -= state.upg1Cost;
+        state.clickPower += 1;
+        state.upg1Cost = Math.floor(state.upg1Cost * 1.5);
+    } else if(type === 'auto' && state.balance >= state.upg2Cost) {
+        state.balance -= state.upg2Cost;
+        state.autoPower += 1;
+        state.upg2Cost = Math.floor(state.upg2Cost * 1.6);
+    }
+    updateUI();
+}
+
+// Цикл авто-урона
+setInterval(() => {
+    if(state.autoPower > 0) {
+        applyDamage(state.autoPower);
+    }
+}, 1000);
+
+updateUI();
 </script>
 
 </body>
-</html>
+  </html>
+  
