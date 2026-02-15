@@ -16,134 +16,118 @@
             user-select: none;
         }
 
-        /* Хедер игрока */
+        /* Хедер и Кнопка рейтинга */
+        .header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
         .user-header {
             background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
-            border-radius: 15px;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 20px;
+            padding: 8px 15px;
+            border-radius: 12px;
             border: 1px solid #333;
+            font-size: 14px;
+        }
+        .rank-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #ffd700;
+            border-radius: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
         }
 
-        h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 5px 0; font-size: 26px; }
+        h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 5px 0; font-size: 24px; }
 
         /* Босс и эффекты */
-        #boss-container {
-            position: relative;
-            display: inline-block;
-            margin: 40px 0;
-        }
-
-        #boss {
-            width: 240px;
-            position: relative;
-            z-index: 10;
-            cursor: pointer;
-            transition: transform 0.05s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
+        #boss { width: 230px; position: relative; z-index: 10; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
         #boss:active { transform: scale(0.92); }
 
         .magic-circle {
             position: absolute; top: 50%; left: 50%;
-            width: 360px; height: 360px;
-            margin-top: -180px; margin-left: -180px;
+            width: 340px; height: 340px;
+            margin-top: -170px; margin-left: -170px;
             background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center;
-            background-size: contain; opacity: 0.25;
-            animation: rotateCircle 15s linear infinite;
+            background-size: contain; opacity: 0.2;
+            animation: rotateCircle 20s linear infinite;
         }
 
-        .aura {
-            position: absolute; top: 50%; left: 50%;
-            width: 200px; height: 200px;
-            margin-top: -100px; margin-left: -100px;
-            box-shadow: 0 0 70px 25px rgba(255, 77, 77, 0.4);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
+        /* Окно рейтинга */
+        #leaderboard-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1000;
         }
+        .leaderboard-window {
+            background: #1a1a1a; margin: 50px auto; width: 85%; border-radius: 20px;
+            padding: 20px; border: 1px solid #ff4d4d; box-shadow: 0 0 20px #ff4d4d;
+        }
+        .leader-item {
+            display: flex; justify-content: space-between; padding: 12px;
+            border-bottom: 1px solid #333; font-size: 16px;
+        }
+        .close-btn { background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 10px; margin-top: 20px; font-weight: bold; }
 
-        @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.3); opacity: 0.7; } }
-
-        /* Статистика */
-        .stats-panel {
-            background: rgba(255,255,255,0.08);
-            border-radius: 20px;
-            padding: 15px;
-            border: 1px solid #444;
-            margin-bottom: 20px;
-        }
-        .bal-text { color: #ffd700; font-size: 24px; font-weight: bold; margin-top: 5px; }
-
-        /* Магазин */
-        .shop { display: flex; justify-content: center; gap: 10px; }
-        .upgrade-card {
-            background: #1a1a1a; border: 1px solid #333;
-            padding: 12px; border-radius: 15px; width: 140px;
-        }
-        .upgrade-card button {
-            background: #28a745; color: white; border: none;
-            padding: 8px; border-radius: 8px; width: 100%;
-            margin-top: 5px; font-weight: bold; cursor: pointer;
-        }
+        /* Статистика и магазин */
+        .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; }
+        .bal-text { color: #ffd700; font-size: 22px; font-weight: bold; }
+        .shop { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .upgrade-card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
+        .upgrade-card button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
         .upgrade-card button:disabled { background: #444; color: #888; }
 
-        /* Анимация урона */
         .damage-text {
-            position: absolute; color: #ff4d4d; font-weight: bold;
-            font-size: 28px; pointer-events: none; z-index: 100;
-            text-shadow: 0 0 5px #000;
-            animation: floatDamage 0.8s ease-out forwards;
+            position: absolute; color: #ff4d4d; font-weight: bold; font-size: 30px;
+            pointer-events: none; z-index: 100; text-shadow: 0 0 5px #000;
+            animation: floatDamage 0.7s ease-out forwards;
         }
-        @keyframes floatDamage {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-120px) scale(1.4); }
-        }
+        @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes floatDamage { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
 
-<div class="user-header">
-    <span id="user-display">⚔️ Игрок</span>
+<div class="header-box">
+    <div class="user-header" id="user-display">⚔️ Игрок</div>
+    <div class="rank-btn" onclick="toggleLeaderboard()">🏆</div>
 </div>
 
 <h1>🔥 CLICKWAR 🔥</h1>
 
 <div class="stats-panel">
-    <div>❤️ HP: <span id="hp">1,000,000</span></div>
+    <div style="font-size: 14px; opacity: 0.8;">BOSS HP: <span id="hp">1,000,000</span></div>
     <div class="bal-text">🪙 <span id="bal">0</span> CW</div>
 </div>
 
 <div id="boss-container">
     <div class="magic-circle"></div>
-    <div class="aura"></div>
     <img id="boss" src="boss.png" alt="Boss" onmousedown="handleHit(event)" ontouchstart="handleHit(event)">
 </div>
 
 <div class="shop">
-    <div class="upgrade-card">
-        <span style="font-size: 12px; opacity: 0.7;">Урон +1</span>
-        <button id="btn-pwr" onclick="buy('pwr')">50</button>
-    </div>
-    <div class="upgrade-card">
-        <span style="font-size: 12px; opacity: 0.7;">Авто +1</span>
-        <button id="btn-auto" onclick="buy('auto')">150</button>
+    <div class="upgrade-card">Урон +1<button id="btn-pwr" onclick="buy('pwr')">50</button></div>
+    <div class="upgrade-card">Авто +1<button id="btn-auto" onclick="buy('auto')">150</button></div>
+</div>
+
+<div id="leaderboard-overlay">
+    <div class="leaderboard-window">
+        <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
+        <div id="leaderboard-list"></div>
+        <button class="close-btn" onclick="toggleLeaderboard()">НАЗАД</button>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.ready();
-
-    // Имя игрока
-    if (tg.initDataUnsafe?.user) {
-        document.getElementById('user-display').innerText = `⚔️ ${tg.initDataUnsafe.user.first_name}`;
+    
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+        document.getElementById('user-display').innerText = `⚔️ ${user.first_name}`;
     }
 
-    // Состояние игры
     let state = {
         hp: 1000000,
         bal: 0,
@@ -153,8 +137,7 @@
         costAuto: 150
     };
 
-    // Загрузка сохранений
-    const saved = localStorage.getItem('cw_final_save');
+    const saved = localStorage.getItem('cw_v4_save');
     if (saved) state = JSON.parse(saved);
 
     function updateUI() {
@@ -162,35 +145,26 @@
         document.getElementById('bal').innerText = Math.floor(state.bal).toLocaleString();
         document.getElementById('btn-pwr').innerText = state.costPwr;
         document.getElementById('btn-auto').innerText = state.costAuto;
-        
         document.getElementById('btn-pwr').disabled = state.bal < state.costPwr;
         document.getElementById('btn-auto').disabled = state.bal < state.costAuto;
-        
-        localStorage.setItem('cw_final_save', JSON.stringify(state));
+        localStorage.setItem('cw_v4_save', JSON.stringify(state));
     }
 
     function handleHit(e) {
-        e.preventDefault(); // Защита от двойного тапа и скролла
-        
+        if(e.type === 'touchstart') e.preventDefault();
         state.hp -= state.pwr;
         state.bal += state.pwr;
-        
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-        // Создаем текст урона
         const text = document.createElement('div');
         text.className = 'damage-text';
         text.innerText = `-${state.pwr}`;
-        
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        
         text.style.left = `${x - 20}px`;
         text.style.top = `${y - 40}px`;
-        
         document.body.appendChild(text);
-        setTimeout(() => text.remove(), 800);
-        
+        setTimeout(() => text.remove(), 700);
         updateUI();
     }
 
@@ -207,15 +181,31 @@
         updateUI();
     }
 
-    // Авто-урон
-    setInterval(() => {
-        if (state.auto > 0) {
-            state.hp -= state.auto;
-            state.bal += state.auto;
-            updateUI();
+    function toggleLeaderboard() {
+        const ov = document.getElementById('leaderboard-overlay');
+        const show = ov.style.display !== 'block';
+        ov.style.display = show ? 'block' : 'none';
+        
+        if (show) {
+            const list = document.getElementById('leaderboard-list');
+            const myName = user?.first_name || "Ты";
+            // Имитация данных
+            const players = [
+                {name: "Netizen_Elite", score: 50000},
+                {name: myName, score: state.bal, isMe: true},
+                {name: "CryptoHunter", score: 1200}
+            ].sort((a,b) => b.score - a.score);
+            
+            list.innerHTML = players.map((p, i) => `
+                <div class="leader-item" style="${p.isMe ? 'color:#00d2ff' : ''}">
+                    <span>${i+1}. ${p.name}</span>
+                    <span style="color:#ffd700">${Math.floor(p.score)}</span>
+                </div>
+            `).join('');
         }
-    }, 1000);
+    }
 
+    setInterval(() => { if (state.auto > 0) { state.hp -= state.auto; state.bal += state.auto; updateUI(); } }, 1000);
     updateUI();
 </script>
 
