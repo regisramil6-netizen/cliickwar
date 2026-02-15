@@ -12,14 +12,14 @@
             color: white; font-family: 'Segoe UI', sans-serif;
             text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none;
         }
-        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .user-header { background: rgba(255, 255, 255, 0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; font-size: 14px; }
         .rank-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 18px; }
         
         h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 5px 0; font-size: 24px; }
 
-        /* ЭФФЕКТЫ БОССА */
-        #boss-container { position: relative; display: inline-block; margin: 30px 0; z-index: 1; }
+        /* ЭФФЕКТЫ */
+        #boss-container { position: relative; display: inline-block; margin: 35px 0; z-index: 1; }
         #boss { width: 230px; position: relative; z-index: 10; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
         #boss:active { transform: scale(0.92); }
 
@@ -27,42 +27,41 @@
             position: absolute; top: 50%; left: 50%; width: 340px; height: 340px;
             margin-top: -170px; margin-left: -170px;
             background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center;
-            background-size: contain; opacity: 0.2; animation: rotateCircle 20s linear infinite;
+            background-size: contain; opacity: 0.25; animation: rotateCircle 20s linear infinite;
             z-index: -1;
         }
 
         .aura-glow {
-            position: absolute; top: 50%; left: 50%; width: 200px; height: 200px;
-            margin-top: -100px; margin-left: -100px;
-            background: rgba(255, 77, 77, 0.3); border-radius: 50%;
-            box-shadow: 0 0 60px 30px rgba(255, 77, 77, 0.4);
+            position: absolute; top: 50%; left: 50%; width: 220px; height: 220px;
+            margin-top: -110px; margin-left: -110px;
+            background: rgba(255, 77, 77, 0.2); border-radius: 50%;
+            box-shadow: 0 0 60px 30px rgba(255, 77, 77, 0.3);
             animation: pulseGlow 2s ease-in-out infinite;
             z-index: -2;
         }
 
         @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulseGlow { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.3); opacity: 0.6; } }
+        @keyframes pulseGlow { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.3); opacity: 0.5; } }
 
-        /* ИНТЕРФЕЙС */
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; }
         .bal-text { color: #ffd700; font-size: 22px; font-weight: bold; }
+        
         .shop { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
         .upgrade-card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
-        .upgrade-card button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
+        .upgrade-card button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
         .upgrade-card button:disabled { background: #444; color: #888; }
 
-        /* АНИМАЦИЯ УРОНА */
         .damage-text {
-            position: absolute; color: #ff4d4d; font-weight: bold; font-size: 30px;
+            position: absolute; color: #ff4d4d; font-weight: bold; font-size: 32px;
             pointer-events: none; z-index: 100; text-shadow: 0 0 5px #000;
             animation: floatDamage 0.7s ease-out forwards;
         }
         @keyframes floatDamage { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
 
-        /* РЕЙТИНГ */
         #leaderboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
-        .leaderboard-window { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; }
+        .leaderboard-window { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 80vh; overflow-y: auto; }
         .leader-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
+        .close-btn { margin-top: 20px; padding: 10px 30px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -94,7 +93,7 @@
     <div class="leaderboard-window">
         <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
         <div id="leaderboard-list">Загрузка...</div>
-        <button style="margin-top:20px; padding:10px; background:#ff4d4d; color:white; border:none; border-radius:10px;" onclick="toggleLeaderboard()">НАЗАД</button>
+        <button class="close-btn" onclick="toggleLeaderboard()">НАЗАД</button>
     </div>
 </div>
 
@@ -102,14 +101,14 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
     
-    // КЛЮЧИ (Оставляем как есть, они верные)
+    // ТВОИ КЛЮЧИ SUPABASE
     const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co"; 
     const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
     
     let supabaseClient = null;
     try {
         supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    } catch(e) { console.error("Supabase init error"); }
+    } catch(e) { console.error("Cloud Error"); }
 
     const user = tg.initDataUnsafe?.user;
     if (user) document.getElementById('user-display').innerText = `⚔️ ${user.first_name}`;
@@ -136,7 +135,7 @@
                 name: user.first_name, 
                 score: Math.floor(state.bal) 
             });
-        } catch (e) { console.warn("Cloud save failed"); }
+        } catch (e) { console.warn("Sync failed"); }
     }
 
     function handleHit(e) {
@@ -147,15 +146,17 @@
         
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-        // Анимация урона
+        // Создаем текст урона
         const text = document.createElement('div');
         text.className = 'damage-text';
         text.innerText = `-${state.pwr}`;
-        const rect = document.getElementById('boss').getBoundingClientRect();
+        
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
+        
         text.style.left = `${x - 15}px`;
         text.style.top = `${y - 30}px`;
+        
         document.body.appendChild(text);
         setTimeout(() => text.remove(), 700);
 
@@ -183,11 +184,6 @@
             const list = document.getElementById('leaderboard-list');
             list.innerText = "Загрузка...";
             
-            if (!supabaseClient) {
-                list.innerText = "Ошибка подключения к базе";
-                return;
-            }
-
             try {
                 const { data, error } = await supabaseClient.from('leaderboard')
                     .select('*').order('score', { ascending: false }).limit(10);
@@ -195,26 +191,20 @@
                 if (error) throw error;
 
                 list.innerHTML = data.map((p, i) => `
-                    <div class="leader-item" style="${p.id == user?.id ? 'color:#00d2ff;' : ''}">
+                    <div class="leader-item" style="${p.id == user?.id ? 'color:#00d2ff; font-weight:bold;' : ''}">
                         <span>${i+1}. ${p.name} ${p.id == user?.id ? '(ВЫ)' : ''}</span>
                         <span style="color:#ffd700">${p.score.toLocaleString()}</span>
                     </div>
                 `).join('');
             } catch (e) {
-                list.innerText = "Ошибка загрузки данных";
+                list.innerText = "Рейтинг временно недоступен";
             }
         }
     }
 
-    setInterval(() => { 
-        if (state.auto > 0) { 
-            state.hp -= state.auto; state.bal += state.auto; updateUI(); 
-        }
-    }, 1000);
-    
-    setInterval(saveToCloud, 20000);
+    setInterval(() => { if (state.auto > 0) { state.hp -= state.auto; state.bal += state.auto; updateUI(); } }, 1000);
+    setInterval(saveToCloud, 15000);
     updateUI();
 </script>
 </body>
-    </html>
-    
+</html>
