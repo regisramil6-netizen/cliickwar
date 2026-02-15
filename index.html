@@ -3,190 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CLICKWAR ELITE</title>
+  <title>CLICKWAR</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+      background: #0f0f0f;
       color: white;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: sans-serif;
       text-align: center;
-      margin: 0; padding: 10px;
+      margin: 0; padding: 15px;
       overflow: hidden;
       user-select: none;
     }
-
-    /* Профиль пользователя */
-    .user-header {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px;
-      border-radius: 15px;
-      margin-bottom: 15px;
+    .user-card {
+      background: rgba(255,255,255,0.1);
+      padding: 10px; border-radius: 12px;
+      display: flex; align-items: center; margin-bottom: 20px;
     }
-    .user-photo { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff4d4d; margin-right: 10px; }
-    .user-info { text-align: left; }
-    .user-info span { display: block; font-size: 14px; font-weight: bold; }
-
-    h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 10px 0; font-size: 24px; }
-
-    /* Окно рейтинга */
-    #leaderboard-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95); z-index: 1000; padding-top: 30px;
-    }
-    .leaderboard-window {
-      background: #1a1a1a; margin: 0 auto; width: 85%; border-radius: 20px;
-      padding: 20px; border: 1px solid #ff4d4d;
-    }
-    .leader-item {
-      display: flex; justify-content: space-between; padding: 12px;
-      border-bottom: 1px solid #333;
-    }
-
-    /* Контейнер босса */
-    #boss-container { position: relative; display: inline-block; margin: 30px 0; }
-    #boss { width: 220px; z-index: 10; cursor: pointer; transition: transform 0.05s; }
-    #boss:active { transform: scale(0.9); }
+    #user-name { font-weight: bold; margin-left: 10px; }
     
+    h1 { color: #ff4d4d; margin: 10px 0; font-size: 22px; }
+    
+    .stats { background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+    
+    #boss-container { position: relative; margin: 30px 0; display: inline-block; }
+    #boss { width: 220px; cursor: pointer; transition: transform 0.05s; z-index: 5; position: relative; }
+    #boss:active { transform: scale(0.95); }
+
     .magic-circle {
-      position: absolute; top: 50%; left: 50%; width: 340px; height: 340px;
-      margin-top: -170px; margin-left: -170px;
+      position: absolute; top: 50%; left: 50%; width: 300px; height: 300px;
+      margin-top: -150px; margin-left: -150px;
       background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center;
-      background-size: contain; opacity: 0.3; animation: rotateCircle 20s linear infinite;
+      background-size: contain; opacity: 0.2; animation: rot 20s linear infinite;
     }
+    @keyframes rot { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
 
-    .stats { background: rgba(255,255,255,0.07); padding: 15px; border-radius: 20px; border: 1px solid #333; }
-    .shop { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
-    .upgrade-card { background: #222; padding: 10px; border-radius: 12px; width: 45%; font-size: 12px; }
-    .upgrade-card button { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; margin-top: 5px; }
-    
-    .rank-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
+    .shop { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+    .item { background: #222; padding: 10px; border-radius: 10px; width: 40%; border: 1px solid #444; }
+    button { background: #28a745; color: white; border: none; width: 100%; padding: 8px; border-radius: 5px; margin-top: 5px; font-weight: bold; }
+    button:disabled { background: #444; }
   </style>
 </head>
 <body>
 
-<div class="user-header">
-    <img id="user-avatar" class="user-photo" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
-    <div class="user-info">
-        <span id="user-name">Загрузка...</span>
-        <span style="color: #ffd700; font-size: 10px;">ID: <span id="user-id">000000</span></span>
-    </div>
+<div class="user-card">
+    <div id="user-name">Игрок</div>
 </div>
-
-<div class="rank-btn" onclick="toggleLeaderboard()">🏆</div>
 
 <h1>🔥 CLICKWAR 🔥</h1>
 
 <div class="stats">
-  <p>❤️ BOSS: <span id="hp" style="color:#ff4d4d">1.000.000</span></p>
-  <p>🪙 <span id="balance" style="color: #ffd700;">0</span> CW</p>
+    <div>❤️ HP: <span id="hp">1.000.000.000.000</span></div>
+    <div style="color: #ffd700; font-size: 20px; margin-top: 5px;">🪙 <span id="bal">0</span> CW</div>
 </div>
 
 <div id="boss-container">
     <div class="magic-circle"></div>
-    <img id="boss" src="boss.png" alt="Boss" onclick="hitBoss(event)" />
+    <img id="boss" src="boss.png" onclick="hit(event)" />
 </div>
 
 <div class="shop">
-  <div class="upgrade-card">УРОН +1 <button id="upg1" onclick="buyUpgrade('click')">50</button></div>
-  <div class="upgrade-card">АВТО +1 <button id="upg2" onclick="buyUpgrade('auto')">150</button></div>
-</div>
-
-<div id="leaderboard-overlay">
-    <div class="leaderboard-window">
-        <h2>🏆 РЕЙТИНГ</h2>
-        <div id="leaderboard-list"></div>
-        <button style="margin-top:20px; padding:10px;" onclick="toggleLeaderboard()">НАЗАД</button>
-    </div>
+    <div class="item">Урон +1<button id="btn1" onclick="buy('pwr')">50</button></div>
+    <div class="item">Авто +1<button id="btn2" onclick="buy('auto')">150</button></div>
 </div>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-// 1. РЕГИСТРАЦИЯ (Получаем данные из Telegram)
-const user = tg.initDataUnsafe?.user;
-if (user) {
-    document.getElementById('user-name').innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-    document.getElementById('user-id').innerText = user.id;
-    if (user.photo_url) {
-        document.getElementById('user-avatar').src = user.photo_url;
+    // Проверка имени пользователя
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
     }
-} else {
-    document.getElementById('user-name').innerText = "Гость";
-}
 
-let state = {
-    hp: 1000000,
-    balance: 0,
-    clickPower: 1,
-    autoPower: 0,
-    upg1Cost: 50,
-    upg2Cost: 150
-};
+    // Состояние
+    let data = {
+        hp: 1000000,
+        bal: 0,
+        pwr: 1,
+        auto: 0,
+        cost1: 50,
+        cost2: 150
+    };
 
-// Загрузка
-const saved = localStorage.getItem('clickwar_save_v3');
-if(saved) state = JSON.parse(saved);
+    // Загрузка
+    const saved = localStorage.getItem('cw_save');
+    if (saved) data = JSON.parse(saved);
 
-function updateUI() {
-    document.getElementById("hp").innerText = Math.max(0, state.hp).toLocaleString();
-    document.getElementById("balance").innerText = Math.floor(state.balance).toLocaleString();
-    document.getElementById("upg1").innerText = state.upg1Cost;
-    document.getElementById("upg2").innerText = state.upg2Cost;
-    document.getElementById("upg1").disabled = state.balance < state.upg1Cost;
-    document.getElementById("upg2").disabled = state.balance < state.upg2Cost;
-    localStorage.setItem('clickwar_save_v3', JSON.stringify(state));
-}
-
-function hitBoss(event) {
-    state.hp -= state.clickPower;
-    state.balance += state.clickPower;
-    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-    updateUI();
-}
-
-function buyUpgrade(type) {
-    if(type === 'click' && state.balance >= state.upg1Cost) {
-        state.balance -= state.upg1Cost;
-        state.clickPower += 1;
-        state.upg1Cost = Math.floor(state.upg1Cost * 1.5);
-    } else if(type === 'auto' && state.balance >= state.upg2Cost) {
-        state.balance -= state.upg2Cost;
-        state.autoPower += 1;
-        state.upg2Cost = Math.floor(state.upg2Cost * 1.6);
+    function update() {
+        document.getElementById('hp').innerText = Math.floor(data.hp).toLocaleString();
+        document.getElementById('bal').innerText = Math.floor(data.bal).toLocaleString();
+        document.getElementById('btn1').innerText = data.cost1;
+        document.getElementById('btn2').innerText = data.cost2;
+        
+        document.getElementById('btn1').disabled = data.bal < data.cost1;
+        document.getElementById('btn2').disabled = data.bal < data.cost2;
+        
+        localStorage.setItem('cw_save', JSON.stringify(data));
     }
-    updateUI();
-}
 
-function toggleLeaderboard() {
-    const ov = document.getElementById('leaderboard-overlay');
-    ov.style.display = ov.style.display === 'block' ? 'none' : 'block';
-    if(ov.style.display === 'block') {
-        const list = document.getElementById('leaderboard-list');
-        const myName = user?.first_name || "Ты";
-        const players = [
-            {name: "Admin", score: 999999},
-            {name: myName, score: state.balance, isMe: true},
-            {name: "Ivan", score: 500}
-        ].sort((a,b) => b.score - a.score);
-        list.innerHTML = players.map((p, i) => `
-            <div class="leader-item">
-                <span>${i+1}. ${p.name} ${p.isMe ? '(Вы)' : ''}</span>
-                <span style="color:#ffd700">${Math.floor(p.score)}</span>
-            </div>
-        `).join('');
+    function hit(e) {
+        data.hp -= data.pwr;
+        data.bal += data.pwr;
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        update();
     }
-}
 
-setInterval(() => { if(state.autoPower > 0) { state.hp -= state.autoPower; state.balance += state.autoPower; updateUI(); } }, 1000);
-updateUI();
+    function buy(type) {
+        if (type === 'pwr' && data.bal >= data.cost1) {
+            data.bal -= data.cost1;
+            data.pwr += 1;
+            data.cost1 = Math.floor(data.cost1 * 1.5);
+        } else if (type === 'auto' && data.bal >= data.cost2) {
+            data.bal -= data.cost2;
+            data.auto += 1;
+            data.cost2 = Math.floor(data.cost2 * 1.6);
+        }
+        update();
+    }
+
+    setInterval(() => {
+        if (data.auto > 0) {
+            data.hp -= data.auto;
+            data.bal += data.auto;
+            update();
+        }
+    }, 1000);
+
+    update();
 </script>
 
 </body>
-  </html>
-  
+</html>
