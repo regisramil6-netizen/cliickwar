@@ -19,12 +19,12 @@
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; }
         .shop { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
         .card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
-        button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
         button:disabled { background: #444; }
         .dmg { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.7s linear forwards; }
         @keyframes fly { to { opacity: 0; transform: translateY(-100px); } }
         #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
-        .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 80vh; overflow-y: auto; }
+        .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; }
         .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
@@ -49,20 +49,18 @@
         <div class="win">
             <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
             <div id="list">Загрузка...</div>
-            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d;margin-top:20px;cursor:pointer">НАЗАД</button>
+            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d;margin-top:20px">НАЗАД</button>
         </div>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    
-    // Настройки Supabase
     const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co"; 
     const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    const u = tg.initDataUnsafe?.user || {id: 12345, first_name: "Игрок"};
+    const u = tg.initDataUnsafe?.user || {id: 123, first_name: "Гость"};
     document.getElementById('un').innerText = "⚔️ " + u.first_name;
 
     let s = { hp: 1000000, bl: 0, p: 1, a: 0, cP: 50, cA: 150 };
@@ -80,13 +78,7 @@
     }
 
     async function save() {
-        try { 
-            await sb.from('leaderboard').upsert({ 
-                id: u.id, 
-                name: u.first_name, 
-                score: Math.floor(s.bl) 
-            }); 
-        } catch(e) { console.error("Ошибка сохранения"); }
+        try { await sb.from('leaderboard').upsert({ id: u.id, name: u.first_name, score: Math.floor(s.bl) }); } catch(e) {}
     }
 
     function hit(e) {
@@ -106,42 +98,22 @@
     function buy(t) {
         if(t==='p' && s.bl>=s.cP){ s.bl-=s.cP; s.p++; s.cP=Math.floor(s.cP*1.6); }
         if(t==='a' && s.bl>=s.cA){ s.bl-=s.cA; s.a++; s.cA=Math.floor(s.cA*1.8); }
-        upd(); 
-        save();
+        upd(); save();
     }
 
-    // ТВОЯ НОВАЯ ФУНКЦИЯ REANK
     async function showRank() {
         document.getElementById('ov').style.display='block';
         const l = document.getElementById('list');
-        l.innerText = "Связь с базой...";
+        l.innerText = "Загрузка...";
         try {
-            const { data, error } = await sb
-                .from('leaderboard')
-                .select('*')
-                .order('score', {ascending: false})
-                .limit(10);
-            
+            const { data, error } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
             if (error) throw error;
-
-            if (!data || data.length === 0) {
-                l.innerText = "Рейтинг пуст. Стань первым!";
-            } else {
-                l.innerHTML = data.map((p,i)=>`
-                    <div class="item" style="${p.id == u.id ? 'color:#00d2ff; font-weight:bold;' : ''}">
-                        <span>${i+1}. ${p.name}</span>
-                        <b style="color:#ffd700">${p.score.toLocaleString()}</b>
-                    </div>
-                `).join('');
-            }
-        } catch(e) { 
-            l.innerText = "Ошибка: " + (e.message || "Нет доступа");
-            console.error(e);
-        }
+            l.innerHTML = data.map((p,i)=>`<div class="item"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
+        } catch(e) { l.innerText = "Ошибка доступа. Создай Policy в Supabase!"; }
     }
 
     setInterval(() => { if(s.a>0){ s.hp-=s.a; s.bl+=s.a; upd(); } }, 1000);
-    setInterval(save, 20000);
+    setInterval(save, 15000);
     upd();
 </script>
 </body>
