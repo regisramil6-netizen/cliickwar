@@ -13,13 +13,12 @@
             color: white; font-family: 'Segoe UI', sans-serif; 
             text-align: center; margin: 0; padding: 15px; 
             overflow: hidden; user-select: none;
-            touch-action: manipulation; /* Убирает задержку клика в мобильных браузерах */
+            touch-action: manipulation;
         }
         
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; }
         .user-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; border: 2px solid var(--accent); object-fit: cover; }
-        
         .circle-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
 
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; }
@@ -27,35 +26,23 @@
         .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
         #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.2s ease; }
 
-        /* ВСПЫШКА НА ВЕСЬ ЭКРАН */
-        #flash { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%); 
-            opacity: 0; pointer-events: none; z-index: 5; 
-        }
-
+        #flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%); opacity: 0; pointer-events: none; z-index: 5; }
         #boss-container { position: relative; display: inline-block; margin: 30px 0; }
-        #boss { 
-            width: 220px; z-index: 10; cursor: pointer; border-radius: 20px;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Эффект прожатия */
+        #boss { width: 220px; z-index: 10; cursor: pointer; border-radius: 20px; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
         #boss.pressed { transform: scale(0.85); }
 
         .shop { display: flex; justify-content: center; gap: 10px; }
         .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; border-radius: 18px; width: 48%; }
-        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; pointer-events: auto; }
+        button:disabled { background: #333; color: #666; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 2000; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: #1a1a1a; border-radius: 25px; padding: 25px; border: 1px solid var(--accent); max-height: 85vh; overflow-y: auto; }
-        
+        .modal-content { background: #1a1a1a; border-radius: 25px; padding: 25px; border: 1px solid var(--accent); }
         .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 3000; }
         @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
-
     <div id="flash"></div>
 
     <div class="header-box">
@@ -63,7 +50,7 @@
             <img id="avatar" class="user-avatar" src="https://img.icons8.com/ios-filled/50/ff4d4d/user-male-circle.png">
             <span id="un">...</span>
         </div>
-        <div class="nav-btns" style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px;">
             <div class="circle-btn" onclick="showModal('bonus-modal')">🎁</div>
             <div class="circle-btn" onclick="showModal('rank-modal'); loadRank();">🏆</div>
         </div>
@@ -76,17 +63,17 @@
     </div>
 
     <div id="boss-container">
-        <img id="boss" src="boss.png" ontouchstart="hit(event)" onmousedown="hit(event)">
+        <img id="boss" src="boss.png" ontouchstart="hit(event)">
     </div>
 
     <div class="shop">
-        <div class="card"><small id="lvlP">LVL 1</small><br>Урон +1<button id="b1" onclick="buy('p')">50</button></div>
-        <div class="card"><small id="lvlE">LVL 1</small><br>Энергия +10<button id="b2" onclick="buy('e')">100</button></div>
+        <div class="card"><small id="lvlP">LVL 1</small><br>Урон +1<button id="b1" onclick="buy('p', event)">50</button></div>
+        <div class="card"><small id="lvlE">LVL 1</small><br>Запас +10<button id="b2" onclick="buy('e', event)">100</button></div>
     </div>
 
-    <div id="profile-modal" class="modal"><div class="modal-content"><h2>ПРОФИЛЬ</h2><p>Рефералы: <b id="st-refs">0</b></p><button onclick="copyRef()">ССЫЛКА</button><br><button onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button></div></div>
-    <div id="bonus-modal" class="modal"><div class="modal-content"><h2>БОНУС</h2><div id="bonus-grid"></div><button id="claim-btn" onclick="claimDaily()">ЗАБРАТЬ</button><br><button onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button></div></div>
-    <div id="rank-modal" class="modal"><div class="modal-content"><h2>ТОП</h2><div id="rank-list"></div><br><button onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button></div></div>
+    <div id="profile-modal" class="modal"><div class="modal-content"><h2>ПРОФИЛЬ</h2><p>Рефералы: <b id="st-refs">0</b></p><button onclick="copyRef()">ССЫЛКА</button><br><button onclick="closeModal('profile-modal')" style="margin-top:10px">ЗАКРЫТЬ</button></div></div>
+    <div id="bonus-modal" class="modal"><div class="modal-content"><h2>БОНУС</h2><div id="bonus-grid"></div><button id="claim-btn" onclick="claimDaily()">ЗАБРАТЬ</button><br><button onclick="closeModal('bonus-modal')" style="margin-top:10px">ЗАКРЫТЬ</button></div></div>
+    <div id="rank-modal" class="modal"><div class="modal-content"><h2>ТОП</h2><div id="rank-list"></div><br><button onclick="closeModal('rank-modal')" style="margin-top:10px">ЗАКРЫТЬ</button></div></div>
 
 <script>
     const tg = window.Telegram.WebApp;
@@ -100,11 +87,11 @@
     let s = { 
         bl: 0, p: 1, cP: 50, e: 300, maxE: 300, cE: 100, 
         lvlP: 1, lvlE: 1, lastBonus: 0, bonusDay: 0, refs: 0,
-        lastExit: Date.now() // Запоминаем время
+        lastExit: Date.now()
     };
 
     async function loadData() {
-        const local = localStorage.getItem('cw_v10');
+        const local = localStorage.getItem('cw_v11');
         if (local) s = {...s, ...JSON.parse(local)};
 
         try {
@@ -116,47 +103,44 @@
             }
         } catch(e) {}
 
-        // ВОССТАНОВЛЕНИЕ В ОФЛАЙНЕ
-        const now = Date.now();
-        const secondsOffline = Math.floor((now - s.lastExit) / 1000);
-        const recoveryPerSec = (s.maxE * 0.01) / 5; // 1% каждые 5 сек
-        s.e = Math.min(s.maxE, s.e + (secondsOffline * recoveryPerSec));
-
+        // Расчет энергии за время отсутствия
+        const offlineSec = Math.floor((Date.now() - s.lastExit) / 1000);
+        const recovery = (offlineSec / 5) * (s.maxE * 0.01);
+        s.e = Math.min(s.maxE, s.e + recovery);
         upd();
     }
 
     function upd() {
-        s.lastExit = Date.now(); // Обновляем время активности
+        s.lastExit = Date.now();
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('cur-e').innerText = Math.floor(s.e);
         document.getElementById('max-e').innerText = s.maxE;
         document.getElementById('energy-bar').style.width = (s.e / s.maxE * 100) + "%";
-        document.getElementById('st-refs').innerText = s.refs;
-        localStorage.setItem('cw_v10', JSON.stringify(s));
+        
+        document.getElementById('b1').innerText = s.cP;
+        document.getElementById('b2').innerText = s.cE;
+        document.getElementById('b1').disabled = s.bl < s.cP;
+        document.getElementById('b2').disabled = s.bl < s.cE;
+        
+        localStorage.setItem('cw_v11', JSON.stringify(s));
     }
 
     function hit(e) {
-        e.preventDefault();
         if(s.e < s.p) return;
-
         s.e -= s.p; s.bl += s.p;
 
-        // Анимация прожатия
         const b = document.getElementById('boss');
         b.classList.add('pressed');
-        setTimeout(() => b.classList.remove('pressed'), 100);
+        setTimeout(() => b.classList.remove('pressed'), 80);
 
-        // Вспышка
         const f = document.getElementById('flash');
         f.style.opacity = "1";
-        setTimeout(() => f.style.opacity = "0", 100);
+        setTimeout(() => f.style.opacity = "0", 80);
 
-        // Число урона
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
-        const rect = b.getBoundingClientRect();
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = e.touches[0].clientX;
+        const y = e.touches[0].clientY;
         d.style.left=`${x-15}px`; d.style.top=`${y-15}px`;
         document.body.appendChild(d);
         setTimeout(()=>d.remove(), 600);
@@ -165,20 +149,30 @@
         upd();
     }
 
-    // Сохранение при выходе/сворачивании
-    window.addEventListener('blur', () => { s.lastExit = Date.now(); saveDB(); });
-
-    async function saveDB() {
-        try { await sb.from('leaderboard').upsert({ id: user.id, name: user.first_name, score: Math.floor(s.bl), refs: s.refs, maxE: s.maxE }); } catch(e) {}
+    function buy(type, e) {
+        if(e) e.stopPropagation(); // Чтобы клик не улетел боссу
+        if(type === 'p' && s.bl >= s.cP) {
+            s.bl -= s.cP; s.p++; s.lvlP++; s.cP = Math.floor(s.cP * 1.5);
+        } else if(type === 'e' && s.bl >= s.cE) {
+            s.bl -= s.cE; s.maxE += 10; s.e += 10; s.lvlE++; s.cE = Math.floor(s.cE * 1.6);
+        }
+        upd();
+        saveDB();
     }
 
-    setInterval(() => { if(s.e < s.maxE) { s.e = Math.min(s.maxE, s.e + (s.maxE * 0.01)); upd(); } }, 5000);
-    setInterval(saveDB, 15000);
+    async function saveDB() {
+        s.lastExit = Date.now();
+        try { await sb.from('leaderboard').upsert({ id: user.id, name: user.first_name, score: Math.floor(s.bl), refs: s.refs, maxE: s.maxE }); } catch(e) {}
+    }
 
     function showModal(id) { document.getElementById(id).style.display='block'; }
     function closeModal(id) { document.getElementById(id).style.display='none'; }
 
+    setInterval(() => { if(s.e < s.maxE) { s.e = Math.min(s.maxE, s.e + (s.maxE * 0.01)); upd(); } }, 5000);
+    setInterval(saveDB, 20000);
+
     loadData();
 </script>
 </body>
-</html>
+                                                                                                                </html>
+                                                                                                                
