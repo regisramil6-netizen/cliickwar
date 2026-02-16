@@ -9,33 +9,43 @@
     <style>
         :root { --accent: #ff4d4d; --gold: #ffd700; }
         body { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none; }
+        
+        /* ШАПКА */
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; cursor: pointer; }
         .user-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; border: 2px solid var(--accent); object-fit: cover; }
+        
         .nav-btns { display: flex; gap: 8px; }
         .circle-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
-        .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; position: relative; }
+
+        /* СТАТИСТИКА */
+        .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; }
         .balance { color: var(--gold); font-size: 34px; font-weight: bold; }
         .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
         #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.3s ease; }
-        #boss-container { position: relative; display: inline-block; margin: 40px 0; }
+
+        /* БОСС */
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
         .boss-bg-flash { position: absolute; top: 50%; left: 50%; width: 260px; height: 260px; margin: -130px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%); opacity: 0; transition: opacity 0.1s; }
-        #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; }
-        #boss:active { transform: scale(0.85); }
-        .magic-circle { position: absolute; top: 50%; left: 50%; width: 420px; height: 420px; margin: -210px; background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center/contain; opacity: 0.12; animation: rot 15s linear infinite; }
-        @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
+        #boss { width: 220px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; border-radius: 20px; }
+        #boss:active { transform: scale(0.9); }
+
+        /* МАГАЗИН */
         .shop { display: flex; justify-content: center; gap: 10px; }
         .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; border-radius: 18px; width: 48%; }
         button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
-        button:disabled { background: #333; color: #666; }
+        button:disabled { background: #333; color: #888; cursor: not-allowed; }
+
+        /* МОДАЛЬНЫЕ ОКНА */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 2000; padding: 20px; box-sizing: border-box; }
         .modal-content { background: #1a1a1a; border-radius: 25px; padding: 25px; border: 1px solid var(--accent); max-height: 85vh; overflow-y: auto; }
+        
         .bonus-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .day-box { background: #222; border: 1px solid #444; padding: 10px; border-radius: 12px; font-size: 12px; opacity: 0.4; }
-        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.15); }
-        .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 34px; pointer-events: none; animation: fly 0.7s ease-out forwards; z-index: 1000; }
-        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px) scale(1.4); } }
-        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
+        .day-box { background: #222; border: 1px solid #444; padding: 8px; border-radius: 12px; font-size: 11px; opacity: 0.4; }
+        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.1); }
+        
+        .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 3000; }
+        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
@@ -54,48 +64,47 @@
     <div class="stats-panel">
         <div class="balance">🪙 <span id="bl">0</span></div>
         <div class="energy-container"><div id="energy-bar"></div></div>
-        <div style="font-size:13px; margin-top:6px; font-weight:bold;"><span id="cur-e">300</span> / <span id="max-e">300</span></div>
+        <div style="font-size:12px; margin-top:5px;"><span id="cur-e">0</span> / <span id="max-e">300</span></div>
     </div>
 
     <div id="boss-container">
         <div class="boss-bg-flash" id="flash"></div>
-        <div class="magic-circle"></div>
         <img id="boss" src="boss.png" onmousedown="hit(event)" ontouchstart="hit(event)">
     </div>
 
     <div class="shop">
-        <div class="card"><span id="lvlP" style="font-size:10px; color:#888">LVL 1</span><br>Сила +1<button id="b1" onclick="buy('p')">50</button></div>
-        <div class="card"><span id="lvlE" style="font-size:10px; color:#888">LVL 1</span><br>Запас +10<button id="b2" onclick="buy('e')">100</button></div>
+        <div class="card"><small id="lvlP">LVL 1</small><br>Урон +1<button id="b1" onclick="buy('p')">50</button></div>
+        <div class="card"><small id="lvlE">LVL 1</small><br>Энергия +10<button id="b2" onclick="buy('e')">100</button></div>
     </div>
 
     <div id="profile-modal" class="modal">
         <div class="modal-content">
-            <h2 style="color:var(--accent)">КАБИНЕТ</h2>
+            <h2 style="color:var(--accent)">ПРОФИЛЬ</h2>
             <div style="text-align:left; line-height: 2;">
                 <p>💰 Баланс: <b id="st-cur">0</b></p>
-                <p>📈 Всего: <b id="st-total">0</b></p>
-                <p>📉 Траты: <b id="st-spent">0</b></p>
-                <p>👥 Друзья: <b id="st-refs">0</b></p>
-                <button onclick="copyRef()" style="background:#0088cc">ПРИГЛАСИТЬ ДРУГА</button>
+                <p>📈 Заработано: <b id="st-total">0</b></p>
+                <p>📉 Потрачено: <b id="st-spent">0</b></p>
+                <p>👥 Рефералы: <b id="st-refs">0</b></p>
+                <button onclick="copyRef()" style="background:#0088cc">ПРИГЛАСИТЬ ДРУГА (+50⚡)</button>
             </div>
-            <button style="margin-top:20px; padding:10px; width:100%" onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button>
+            <button style="margin-top:20px" onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <div id="bonus-modal" class="modal">
         <div class="modal-content">
-            <h2>БОНУСЫ</h2>
+            <h2>ЕЖЕДНЕВНЫЙ ПРИЗ</h2>
             <div class="bonus-grid" id="bonus-grid"></div>
-            <button id="claim-btn" onclick="claimDaily()" style="margin-top:20px; background:var(--gold); color:black">ЗАБРАТЬ</button>
-            <button style="margin-top:10px; width:100%" onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button>
+            <button id="claim-btn" onclick="claimDaily()" style="margin-top:20px">ЗАБРАТЬ</button>
+            <button style="margin-top:10px; background:#444" onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <div id="rank-modal" class="modal">
         <div class="modal-content">
-            <h2>🏆 ТОП</h2>
+            <h2>🏆 ТОП ИГРОКОВ</h2>
             <div id="rank-list"></div>
-            <button style="margin-top:20px; width:100%" onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button>
+            <button style="margin-top:20px" onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -112,65 +121,66 @@
     if(user.photo_url) document.getElementById('avatar').src = user.photo_url;
 
     let s = { 
-        bl: 0, total: 0, spent: 0, 
-        p: 1, cP: 50, 
-        e: 300, maxE: 300, cE: 100,
-        lvlP: 1, lvlE: 1,
+        bl: 0, total: 0, spent: 0, p: 1, cP: 50, 
+        e: 300, maxE: 300, cE: 100, lvlP: 1, lvlE: 1,
         lastBonus: 0, bonusDay: 0, refs: 0
     };
 
     const rewards = [{m:10}, {m:20}, {m:50}, {m:70}, {m:100}, {m:200}, {e:50}];
 
-    // ЗАГРУЗКА ДАННЫХ ИЗ БАЗЫ
     async function loadData() {
-        const local = localStorage.getItem('cw_v7');
+        const local = localStorage.getItem('cw_final_v1');
         if (local) s = {...s, ...JSON.parse(local)};
 
-        const { data } = await sb.from('leaderboard').select('*').eq('id', user.id).single();
-        if (data) {
-            s.bl = data.score || s.bl;
-            s.refs = data.refs || 0;
-            s.maxE = data.maxE || 300;
-        }
+        try {
+            const { data } = await sb.from('leaderboard').select('*').eq('id', user.id).single();
+            if (data) {
+                s.bl = data.score || s.bl;
+                s.refs = data.refs || 0;
+                s.maxE = data.maxE || 300;
+            }
+        } catch(e) { console.log("Load Error"); }
+        
+        checkRef();
         upd();
-        checkRef(); // Проверка приглашения
     }
 
-    // ЛОГИКА РЕФЕРАЛОВ
     async function checkRef() {
         const urlParams = new URLSearchParams(window.location.search);
         const refId = urlParams.get('tgWebAppStartParam');
-        const isNew = !localStorage.getItem('cw_v7');
-
-        if (refId && isNew && refId != user.id) {
-            const { data } = await sb.from('leaderboard').select('*').eq('id', refId).single();
-            if (data) {
-                await sb.from('leaderboard').update({ 
-                    refs: (data.refs || 0) + 1, 
-                    maxE: (data.maxE || 300) + 50 
-                }).eq('id', refId);
-            }
+        if (refId && !localStorage.getItem('cw_ref_done') && refId != user.id) {
+            try {
+                const { data } = await sb.from('leaderboard').select('*').eq('id', refId).single();
+                if (data) {
+                    await sb.from('leaderboard').update({ 
+                        refs: (data.refs || 0) + 1, 
+                        maxE: (data.maxE || 300) + 50 
+                    }).eq('id', refId);
+                    localStorage.setItem('cw_ref_done', 'true');
+                }
+            } catch(e) {}
         }
     }
 
     function upd() {
+        if (!s.maxE || s.maxE < 300) s.maxE = 300;
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('cur-e').innerText = Math.floor(s.e);
         document.getElementById('max-e').innerText = s.maxE;
         document.getElementById('energy-bar').style.width = (s.e / s.maxE * 100) + "%";
-        document.getElementById('lvlP').innerText = "LVL " + s.lvlP;
-        document.getElementById('lvlE').innerText = "LVL " + s.lvlE;
-        document.getElementById('b1').innerText = s.cP;
-        document.getElementById('b2').innerText = s.cE;
-        document.getElementById('b1').disabled = s.bl < s.cP;
-        document.getElementById('b2').disabled = s.bl < s.cE;
         
         document.getElementById('st-cur').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('st-total').innerText = Math.floor(s.total).toLocaleString();
         document.getElementById('st-spent').innerText = Math.floor(s.spent).toLocaleString();
         document.getElementById('st-refs').innerText = s.refs;
 
-        localStorage.setItem('cw_v7', JSON.stringify(s));
+        document.getElementById('b1').innerText = s.cP;
+        document.getElementById('b2').innerText = s.cE;
+        document.getElementById('b1').disabled = s.bl < s.cP;
+        document.getElementById('b2').disabled = s.bl < s.cE;
+
+        localStorage.setItem('cw_final_v1', JSON.stringify(s));
+        updateTimer();
     }
 
     function hit(e) {
@@ -179,7 +189,7 @@
         s.e -= s.p; s.bl += s.p; s.total += s.p;
         document.getElementById('flash').style.opacity = "1";
         setTimeout(() => document.getElementById('flash').style.opacity = "0", 80);
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
@@ -197,56 +207,71 @@
         saveDB();
     }
 
+    function updateTimer() {
+        const btn = document.getElementById('claim-btn');
+        if(!btn) return;
+        const diff = (s.lastBonus + 86400000) - Date.now();
+        if(diff <= 0) {
+            btn.disabled = false;
+            btn.innerText = "ЗАБРАТЬ НАГРАДУ";
+        } else {
+            btn.disabled = true;
+            const h = Math.floor(diff/3600000);
+            const m = Math.floor((diff%3600000)/60000);
+            const sec = Math.floor((diff%60000)/1000);
+            btn.innerText = `${h}ч ${m}м ${sec}с`;
+        }
+    }
+
+    function showBonus() {
+        const grid = document.getElementById('bonus-grid');
+        grid.innerHTML = rewards.map((r, i) => `<div class="day-box ${s.bonusDay === i ? 'active' : ''}">ДЕНЬ ${i+1}<br>${r.m ? r.m+'🪙' : r.e+'⚡'}</div>`).join('');
+    }
+
+    function claimDaily() {
+        if(Date.now() - s.lastBonus < 86400000) return;
+        const r = rewards[s.bonusDay];
+        if(r.m) s.bl += r.m; if(r.e) { s.maxE += r.e; s.e += r.e; }
+        s.lastBonus = Date.now();
+        s.bonusDay = (s.bonusDay + 1) % 7;
+        upd(); showBonus(); saveDB();
+    }
+
     function copyRef() {
-        const link = `https://t.me/ClickWarBot_bot/start?startapp=${user.id}`;
+        const link = `https://t.me/ClickWarBot_bot/app?startapp=${user.id}`;
         const el = document.createElement('textarea');
-        el.value = link;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
+        el.value = link; document.body.appendChild(el);
+        el.select(); document.execCommand('copy');
         document.body.removeChild(el);
-        tg.showAlert("Ссылка скопирована! Отправь другу.");
+        tg.showAlert("Ссылка скопирована!");
     }
 
     async function saveDB() {
         try { 
             await sb.from('leaderboard').upsert({ 
-                id: user.id, 
-                name: user.first_name, 
-                score: Math.floor(s.bl),
-                refs: s.refs,
-                maxE: s.maxE
+                id: user.id, name: user.first_name, score: Math.floor(s.bl), refs: s.refs, maxE: s.maxE 
             }); 
         } catch(e) {}
-    }
-
-    function showBonus() {
-        const grid = document.getElementById('bonus-grid');
-        grid.innerHTML = rewards.map((r, i) => `<div class="day-box ${s.bonusDay === i ? 'active' : ''}">ДЕНЬ ${i+1}<br><b>${r.m ? r.m+'🪙' : r.e+'⚡'}</b></div>`).join('');
-        const canClaim = Date.now() - s.lastBonus > 86400000;
-        document.getElementById('claim-btn').disabled = !canClaim;
-    }
-
-    function claimDaily() {
-        const r = rewards[s.bonusDay];
-        if (r.m) s.bl += r.m; if (r.e) s.maxE += r.e;
-        s.lastBonus = Date.now();
-        s.bonusDay = (s.bonusDay + 1) % 7;
-        upd(); showBonus();
     }
 
     async function loadRank() {
         const l = document.getElementById('rank-list'); l.innerText = "...";
         const { data } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
-        l.innerHTML = data.map((p,i)=>`<div class="item"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
+        l.innerHTML = data.map((p,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
     }
 
     function showModal(id) { document.getElementById(id).style.display='block'; if(id==='bonus-modal') showBonus(); }
     function closeModal(id) { document.getElementById(id).style.display='none'; }
 
-    setInterval(() => { if(s.e < s.maxE) { s.e += 1; upd(); } }, 6000);
-    setInterval(saveDB, 15000);
+    // Регенерация энергии: +1% в 5 сек
+    setInterval(() => { if(s.e < s.maxE) { s.e = Math.min(s.maxE, s.e + (s.maxE * 0.01)); upd(); } }, 5000);
+    // Обновление таймера каждую секунду
+    setInterval(updateTimer, 1000);
+    // Автосохранение в базу каждые 20 сек
+    setInterval(saveDB, 20000);
+
     loadData();
 </script>
 </body>
-</html>
+    </html>
+    
