@@ -8,64 +8,47 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #ff4d4d; --gold: #ffd700; }
-        body { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none; }
+        body { 
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%); 
+            color: white; font-family: 'Segoe UI', sans-serif; 
+            text-align: center; margin: 0; padding: 15px; 
+            overflow: hidden; user-select: none;
+            touch-action: manipulation; /* Убирает задержку клика в мобильных браузерах */
+        }
         
-        /* ШАПКА */
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; cursor: pointer; }
+        .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; }
         .user-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; border: 2px solid var(--accent); object-fit: cover; }
         
-        .nav-btns { display: flex; gap: 8px; }
         .circle-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
 
-        /* СТАТИСТИКА */
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; }
         .balance { color: var(--gold); font-size: 34px; font-weight: bold; }
         .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
-        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.3s ease; }
+        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.2s ease; }
 
-        /* БОСС И ПОЛНОЭКРАННАЯ ВСПЫШКА */
-        #boss-container { position: relative; display: inline-block; margin: 30px 0; perspective: 1000px; }
-        
-        .boss-bg-flash { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100vw; height: 100vh; 
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%); 
-            opacity: 0; 
-            transition: opacity 0.1s; 
-            pointer-events: none; 
-            z-index: 5; 
+        /* ВСПЫШКА НА ВЕСЬ ЭКРАН */
+        #flash { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%); 
+            opacity: 0; pointer-events: none; z-index: 5; 
         }
 
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
         #boss { 
-            width: 220px; 
-            position: relative; 
-            z-index: 10; 
-            cursor: pointer; 
-            border-radius: 20px;
-            /* Плавный возврат (эффект пружины) */
-            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            width: 220px; z-index: 10; cursor: pointer; border-radius: 20px;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent;
         }
+        /* Эффект прожатия */
+        #boss.pressed { transform: scale(0.85); }
 
-        /* АНИМАЦИЯ: Босс уменьшается (вдавливается) при нажатии */
-        #boss:active { 
-            transform: scale(0.85); 
-        }
-
-        /* МАГАЗИН */
         .shop { display: flex; justify-content: center; gap: 10px; }
         .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; border-radius: 18px; width: 48%; }
         button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
-        button:disabled { background: #333; color: #888; cursor: not-allowed; }
 
-        /* МОДАЛЬНЫЕ ОКНА */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 2000; padding: 20px; box-sizing: border-box; }
         .modal-content { background: #1a1a1a; border-radius: 25px; padding: 25px; border: 1px solid var(--accent); max-height: 85vh; overflow-y: auto; }
-        
-        .bonus-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .day-box { background: #222; border: 1px solid #444; padding: 8px; border-radius: 12px; font-size: 11px; opacity: 0.4; }
-        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.1); }
         
         .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 3000; }
         @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
@@ -73,12 +56,14 @@
 </head>
 <body>
 
+    <div id="flash"></div>
+
     <div class="header-box">
         <div class="user-info" onclick="showModal('profile-modal')">
             <img id="avatar" class="user-avatar" src="https://img.icons8.com/ios-filled/50/ff4d4d/user-male-circle.png">
             <span id="un">...</span>
         </div>
-        <div class="nav-btns">
+        <div class="nav-btns" style="display:flex; gap:8px;">
             <div class="circle-btn" onclick="showModal('bonus-modal')">🎁</div>
             <div class="circle-btn" onclick="showModal('rank-modal'); loadRank();">🏆</div>
         </div>
@@ -91,8 +76,7 @@
     </div>
 
     <div id="boss-container">
-        <div class="boss-bg-flash" id="flash"></div>
-        <img id="boss" src="boss.png" onmousedown="hit(event)" ontouchstart="hit(event)">
+        <img id="boss" src="boss.png" ontouchstart="hit(event)" onmousedown="hit(event)">
     </div>
 
     <div class="shop">
@@ -100,59 +84,27 @@
         <div class="card"><small id="lvlE">LVL 1</small><br>Энергия +10<button id="b2" onclick="buy('e')">100</button></div>
     </div>
 
-    <div id="profile-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="color:var(--accent)">ПРОФИЛЬ</h2>
-            <div style="text-align:left; line-height: 2;">
-                <p>💰 Баланс: <b id="st-cur">0</b></p>
-                <p>📈 Заработано: <b id="st-total">0</b></p>
-                <p>📉 Потрачено: <b id="st-spent">0</b></p>
-                <p>👥 Рефералы: <b id="st-refs">0</b></p>
-                <button onclick="copyRef()" style="background:#0088cc">ПРИГЛАСИТЬ ДРУГА (+50⚡)</button>
-            </div>
-            <button style="margin-top:20px" onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button>
-        </div>
-    </div>
-
-    <div id="bonus-modal" class="modal">
-        <div class="modal-content">
-            <h2>ЕЖЕДНЕВНЫЙ ПРИЗ</h2>
-            <div class="bonus-grid" id="bonus-grid"></div>
-            <button id="claim-btn" onclick="claimDaily()" style="margin-top:20px">ЗАБРАТЬ</button>
-            <button style="margin-top:10px; background:#444" onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button>
-        </div>
-    </div>
-
-    <div id="rank-modal" class="modal">
-        <div class="modal-content">
-            <h2>🏆 ТОП ИГРОКОВ</h2>
-            <div id="rank-list"></div>
-            <button style="margin-top:20px" onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button>
-        </div>
-    </div>
+    <div id="profile-modal" class="modal"><div class="modal-content"><h2>ПРОФИЛЬ</h2><p>Рефералы: <b id="st-refs">0</b></p><button onclick="copyRef()">ССЫЛКА</button><br><button onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button></div></div>
+    <div id="bonus-modal" class="modal"><div class="modal-content"><h2>БОНУС</h2><div id="bonus-grid"></div><button id="claim-btn" onclick="claimDaily()">ЗАБРАТЬ</button><br><button onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button></div></div>
+    <div id="rank-modal" class="modal"><div class="modal-content"><h2>ТОП</h2><div id="rank-list"></div><br><button onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button></div></div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
-    const sb = supabase.createClient(SB_URL, SB_KEY);
+    const sb = supabase.createClient("https://oniwtglhvsczfmgijeco.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs");
 
     const user = tg.initDataUnsafe?.user || {id: 777, first_name: "Игрок"};
     document.getElementById('un').innerText = user.first_name;
-    if(user.photo_url) document.getElementById('avatar').src = user.photo_url;
 
     let s = { 
-        bl: 0, total: 0, spent: 0, p: 1, cP: 50, 
-        e: 300, maxE: 300, cE: 100, lvlP: 1, lvlE: 1,
-        lastBonus: 0, bonusDay: 0, refs: 0
+        bl: 0, p: 1, cP: 50, e: 300, maxE: 300, cE: 100, 
+        lvlP: 1, lvlE: 1, lastBonus: 0, bonusDay: 0, refs: 0,
+        lastExit: Date.now() // Запоминаем время
     };
 
-    const rewards = [{m:10}, {m:20}, {m:50}, {m:70}, {m:100}, {m:200}, {e:50}];
-
     async function loadData() {
-        const local = localStorage.getItem('cw_final_v1');
+        const local = localStorage.getItem('cw_v10');
         if (local) s = {...s, ...JSON.parse(local)};
 
         try {
@@ -162,142 +114,71 @@
                 s.refs = data.refs || 0;
                 s.maxE = data.maxE || 300;
             }
-        } catch(e) { console.log("Load Error"); }
-        
-        checkRef();
+        } catch(e) {}
+
+        // ВОССТАНОВЛЕНИЕ В ОФЛАЙНЕ
+        const now = Date.now();
+        const secondsOffline = Math.floor((now - s.lastExit) / 1000);
+        const recoveryPerSec = (s.maxE * 0.01) / 5; // 1% каждые 5 сек
+        s.e = Math.min(s.maxE, s.e + (secondsOffline * recoveryPerSec));
+
         upd();
     }
 
-    async function checkRef() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const refId = urlParams.get('tgWebAppStartParam');
-        if (refId && !localStorage.getItem('cw_ref_done') && refId != user.id) {
-            try {
-                const { data } = await sb.from('leaderboard').select('*').eq('id', refId).single();
-                if (data) {
-                    await sb.from('leaderboard').update({ 
-                        refs: (data.refs || 0) + 1, 
-                        maxE: (data.maxE || 300) + 50 
-                    }).eq('id', refId);
-                    localStorage.setItem('cw_ref_done', 'true');
-                }
-            } catch(e) {}
-        }
-    }
-
     function upd() {
-        if (!s.maxE || s.maxE < 300) s.maxE = 300;
+        s.lastExit = Date.now(); // Обновляем время активности
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('cur-e').innerText = Math.floor(s.e);
         document.getElementById('max-e').innerText = s.maxE;
         document.getElementById('energy-bar').style.width = (s.e / s.maxE * 100) + "%";
-        
-        document.getElementById('st-cur').innerText = Math.floor(s.bl).toLocaleString();
-        document.getElementById('st-total').innerText = Math.floor(s.total).toLocaleString();
-        document.getElementById('st-spent').innerText = Math.floor(s.spent).toLocaleString();
         document.getElementById('st-refs').innerText = s.refs;
-
-        document.getElementById('b1').innerText = s.cP;
-        document.getElementById('b2').innerText = s.cE;
-        document.getElementById('b1').disabled = s.bl < s.cP;
-        document.getElementById('b2').disabled = s.bl < s.cE;
-
-        localStorage.setItem('cw_final_v1', JSON.stringify(s));
-        updateTimer();
+        localStorage.setItem('cw_v10', JSON.stringify(s));
     }
 
     function hit(e) {
-        if(e.type==='touchstart') e.preventDefault();
+        e.preventDefault();
         if(s.e < s.p) return;
-        s.e -= s.p; s.bl += s.p; s.total += s.p;
-        
-        // Полноэкранная вспышка
-        const flash = document.getElementById('flash');
-        flash.style.opacity = "1";
-        setTimeout(() => flash.style.opacity = "0", 100);
-        
-        // Вибрация
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
+        s.e -= s.p; s.bl += s.p;
+
+        // Анимация прожатия
+        const b = document.getElementById('boss');
+        b.classList.add('pressed');
+        setTimeout(() => b.classList.remove('pressed'), 100);
+
+        // Вспышка
+        const f = document.getElementById('flash');
+        f.style.opacity = "1";
+        setTimeout(() => f.style.opacity = "0", 100);
+
+        // Число урона
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
+        const rect = b.getBoundingClientRect();
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
         d.style.left=`${x-15}px`; d.style.top=`${y-15}px`;
         document.body.appendChild(d);
         setTimeout(()=>d.remove(), 600);
+
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         upd();
     }
 
-    function buy(t) {
-        if(t==='p' && s.bl>=s.cP){ s.bl-=s.cP; s.spent+=s.cP; s.p++; s.lvlP++; s.cP=Math.floor(s.cP*1.7); }
-        if(t==='e' && s.bl>=s.cE){ s.bl-=s.cE; s.spent+=s.cE; s.maxE+=10; s.e+=10; s.lvlE++; s.cE=Math.floor(s.cE*1.8); }
-        upd();
-        saveDB();
-    }
-
-    function updateTimer() {
-        const btn = document.getElementById('claim-btn');
-        if(!btn) return;
-        const diff = (s.lastBonus + 86400000) - Date.now();
-        if(diff <= 0) {
-            btn.disabled = false;
-            btn.innerText = "ЗАБРАТЬ НАГРАДУ";
-        } else {
-            btn.disabled = true;
-            const h = Math.floor(diff/3600000);
-            const m = Math.floor((diff%3600000)/60000);
-            const sec = Math.floor((diff%60000)/1000);
-            btn.innerText = `${h}ч ${m}м ${sec}с`;
-        }
-    }
-
-    function showBonus() {
-        const grid = document.getElementById('bonus-grid');
-        grid.innerHTML = rewards.map((r, i) => `<div class="day-box ${s.bonusDay === i ? 'active' : ''}">ДЕНЬ ${i+1}<br>${r.m ? r.m+'🪙' : r.e+'⚡'}</div>`).join('');
-    }
-
-    function claimDaily() {
-        if(Date.now() - s.lastBonus < 86400000) return;
-        const r = rewards[s.bonusDay];
-        if(r.m) s.bl += r.m; if(r.e) { s.maxE += r.e; s.e += r.e; }
-        s.lastBonus = Date.now();
-        s.bonusDay = (s.bonusDay + 1) % 7;
-        upd(); showBonus(); saveDB();
-    }
-
-    function copyRef() {
-        const link = `https://t.me/ClickWarBot_bot/app?startapp=${user.id}`;
-        const el = document.createElement('textarea');
-        el.value = link; document.body.appendChild(el);
-        el.select(); document.execCommand('copy');
-        document.body.removeChild(el);
-        tg.showAlert("Ссылка скопирована!");
-    }
+    // Сохранение при выходе/сворачивании
+    window.addEventListener('blur', () => { s.lastExit = Date.now(); saveDB(); });
 
     async function saveDB() {
-        try { 
-            await sb.from('leaderboard').upsert({ 
-                id: user.id, name: user.first_name, score: Math.floor(s.bl), refs: s.refs, maxE: s.maxE 
-            }); 
-        } catch(e) {}
+        try { await sb.from('leaderboard').upsert({ id: user.id, name: user.first_name, score: Math.floor(s.bl), refs: s.refs, maxE: s.maxE }); } catch(e) {}
     }
-
-    async function loadRank() {
-        const l = document.getElementById('rank-list'); l.innerText = "...";
-        const { data } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
-        l.innerHTML = data.map((p,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
-    }
-
-    function showModal(id) { document.getElementById(id).style.display='block'; if(id==='bonus-modal') showBonus(); }
-    function closeModal(id) { document.getElementById(id).style.display='none'; }
 
     setInterval(() => { if(s.e < s.maxE) { s.e = Math.min(s.maxE, s.e + (s.maxE * 0.01)); upd(); } }, 5000);
-    setInterval(updateTimer, 1000);
-    setInterval(saveDB, 20000);
+    setInterval(saveDB, 15000);
+
+    function showModal(id) { document.getElementById(id).style.display='block'; }
+    function closeModal(id) { document.getElementById(id).style.display='none'; }
 
     loadData();
 </script>
 </body>
-    </html>
-    
+</html>
