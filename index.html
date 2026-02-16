@@ -24,11 +24,34 @@
         .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
         #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.3s ease; }
 
-        /* БОСС */
-        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
-        .boss-bg-flash { position: absolute; top: 50%; left: 50%; width: 260px; height: 260px; margin: -130px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%); opacity: 0; transition: opacity 0.1s; }
-        #boss { width: 220px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; border-radius: 20px; }
-        #boss:active { transform: scale(0.9); }
+        /* БОСС И ПОЛНОЭКРАННАЯ ВСПЫШКА */
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; perspective: 1000px; }
+        
+        .boss-bg-flash { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%); 
+            opacity: 0; 
+            transition: opacity 0.1s; 
+            pointer-events: none; 
+            z-index: 5; 
+        }
+
+        #boss { 
+            width: 220px; 
+            position: relative; 
+            z-index: 10; 
+            cursor: pointer; 
+            border-radius: 20px;
+            /* Плавный возврат (эффект пружины) */
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+
+        /* АНИМАЦИЯ: Босс уменьшается (вдавливается) при нажатии */
+        #boss:active { 
+            transform: scale(0.85); 
+        }
 
         /* МАГАЗИН */
         .shop { display: flex; justify-content: center; gap: 10px; }
@@ -187,9 +210,15 @@
         if(e.type==='touchstart') e.preventDefault();
         if(s.e < s.p) return;
         s.e -= s.p; s.bl += s.p; s.total += s.p;
-        document.getElementById('flash').style.opacity = "1";
-        setTimeout(() => document.getElementById('flash').style.opacity = "0", 80);
         
+        // Полноэкранная вспышка
+        const flash = document.getElementById('flash');
+        flash.style.opacity = "1";
+        setTimeout(() => flash.style.opacity = "0", 100);
+        
+        // Вибрация
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
@@ -263,11 +292,8 @@
     function showModal(id) { document.getElementById(id).style.display='block'; if(id==='bonus-modal') showBonus(); }
     function closeModal(id) { document.getElementById(id).style.display='none'; }
 
-    // Регенерация энергии: +1% в 5 сек
     setInterval(() => { if(s.e < s.maxE) { s.e = Math.min(s.maxE, s.e + (s.maxE * 0.01)); upd(); } }, 5000);
-    // Обновление таймера каждую секунду
     setInterval(updateTimer, 1000);
-    // Автосохранение в базу каждые 20 сек
     setInterval(saveDB, 20000);
 
     loadData();
