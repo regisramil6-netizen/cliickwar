@@ -10,44 +10,40 @@
         :root { --accent: #ff4d4d; --gold: #ffd700; }
         body { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none; }
         
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; }
-        .user-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; border: 1px solid var(--accent); }
+        .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; cursor: pointer; }
+        .user-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; border: 1px solid var(--accent); object-fit: cover; }
         .nav-btns { display: flex; gap: 8px; }
         .circle-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
 
-        /* СТАТИСТИКА */
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; position: relative; }
         .balance { color: var(--gold); font-size: 32px; font-weight: bold; }
         .energy-container { width: 100%; height: 12px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
         #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.3s; }
 
-        /* БОСС И ЭФФЕКТЫ */
-        #boss-container { position: relative; display: inline-block; margin: 40px 0; border-radius: 50%; transition: background 0.2s; }
-        .boss-bg-flash { position: absolute; top: 50%; left: 50%; width: 250px; height: 250px; margin: -125px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%); opacity: 0; transition: opacity 0.1s; z-index: 5; }
+        #boss-container { position: relative; display: inline-block; margin: 40px 0; border-radius: 50%; }
+        .boss-bg-flash { position: absolute; top: 50%; left: 50%; width: 250px; height: 250px; margin: -125px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%); opacity: 0; transition: opacity 0.1s; z-index: 5; pointer-events: none; }
         #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; }
         #boss:active { transform: scale(0.9); }
         .magic-circle { position: absolute; top: 50%; left: 50%; width: 400px; height: 400px; margin: -200px; background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center/contain; opacity: 0.1; animation: rot 15s linear infinite; }
         @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
 
-        /* МАГАЗИН */
         .shop { display: flex; justify-content: center; gap: 10px; }
         .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 10px; border-radius: 15px; width: 48%; }
-        button { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
+        button { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        button:disabled { background: #333; color: #666; }
 
-        /* ОКНА */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 2000; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: #1a1a1a; border-radius: 25px; padding: 20px; border: 1px solid var(--accent); max-height: 80vh; overflow-y: auto; }
-        .close-btn { background: var(--accent); border: none; padding: 10px 20px; border-radius: 10px; color: white; margin-top: 20px; width: 100%; }
+        .modal-content { background: #1a1a1a; border-radius: 25px; padding: 25px; border: 1px solid var(--accent); max-height: 85vh; overflow-y: auto; }
+        .close-btn { background: var(--accent); border: none; padding: 12px; border-radius: 12px; color: white; margin-top: 20px; width: 100%; font-weight: bold; }
         
-        /* БОНУСЫ */
         .bonus-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
-        .day-box { background: #222; border: 1px solid #444; padding: 8px; border-radius: 10px; font-size: 11px; opacity: 0.5; }
-        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.1); }
+        .day-box { background: #222; border: 1px solid #444; padding: 8px; border-radius: 10px; font-size: 11px; opacity: 0.4; }
+        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.1); color: var(--gold); font-weight: bold; }
         
-        .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 32px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 1000; }
+        .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 32px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 1000; text-shadow: 0 0 10px black; }
         @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -66,7 +62,7 @@
     <div class="stats-panel">
         <div class="balance">🪙 <span id="bl">0</span></div>
         <div class="energy-container"><div id="energy-bar"></div></div>
-        <div style="font-size:12px; margin-top:5px;"><span id="cur-e">300</span> / <span id="max-e">300</span></div>
+        <div style="font-size:12px; margin-top:5px; font-weight:bold;"><span id="cur-e">300</span> / <span id="max-e">300</span></div>
     </div>
 
     <div id="boss-container">
@@ -83,31 +79,31 @@
     <div id="profile-modal" class="modal">
         <div class="modal-content">
             <h2 style="color:var(--accent)">ЛИЧНЫЙ КАБИНЕТ</h2>
-            <div style="text-align:left; line-height: 2;">
-                <p>💰 Текущий баланс: <b id="st-cur" style="color:var(--gold)">0</b></p>
-                <p>📈 Всего заработано: <b id="st-total">0</b></p>
-                <p>📉 Всего потрачено: <b id="st-spent">0</b></p>
-                <hr style="border:0; border-top:1px solid #333">
-                <p>👥 Рефералов: <b id="st-refs">0</b></p>
-                <button onclick="copyRef()" style="background:#0088cc">Пригласить друга (+50⚡)</button>
+            <div style="text-align:left; line-height: 2.2; font-size: 18px;">
+                <p>💰 Баланс: <b id="st-cur" style="color:var(--gold)">0</b></p>
+                <p>📈 Добыто всего: <b id="st-total">0</b></p>
+                <p>📉 Потрачено: <b id="st-spent">0</b></p>
+                <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
+                <p>👥 Приглашено: <b id="st-refs">0</b></p>
+                <button onclick="copyRef()" style="background:#0088cc; font-size: 14px;">КОПИРОВАТЬ ССЫЛКУ (+50⚡)</button>
             </div>
-            <button class="close-btn" onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button>
+            <button class="close-btn" onclick="closeModal('profile-modal')">НАЗАД</button>
         </div>
     </div>
 
     <div id="bonus-modal" class="modal">
         <div class="modal-content">
-            <h2>ЕЖЕДНЕВНЫЙ БОНУС</h2>
+            <h2 style="color:var(--gold)">ЕЖЕДНЕВНЫЙ БОНУС</h2>
             <div class="bonus-grid" id="bonus-grid"></div>
-            <button id="claim-btn" onclick="claimDaily()" style="margin-top:20px; background:var(--gold); color:black">ЗАБРАТЬ НАГРАДУ</button>
+            <button id="claim-btn" onclick="claimDaily()" style="margin-top:25px; background:var(--gold); color:black">ЗАБРАТЬ НАГРАДУ</button>
             <button class="close-btn" onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <div id="rank-modal" class="modal">
         <div class="modal-content">
-            <h2>🏆 ТОП ИГРОКОВ</h2>
-            <div id="rank-list"></div>
+            <h2 style="color:var(--gold)">🏆 ТОП ИГРОКОВ</h2>
+            <div id="rank-list" style="margin-top:15px;"></div>
             <button class="close-btn" onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
@@ -120,7 +116,7 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    const u = tg.initDataUnsafe?.user || {id: 123, first_name: "Игрок"};
+    const u = tg.initDataUnsafe?.user || {id: 0, first_name: "Игрок"};
     document.getElementById('un').innerText = u.first_name;
     if(u.photo_url) document.getElementById('avatar').src = u.photo_url;
 
@@ -132,15 +128,12 @@
         lastBonus: 0, bonusDay: 0, refs: 0
     };
 
-    const rewards = [
-        {m: 10}, {m: 20}, {m: 50}, {m: 70}, {m: 100}, {m: 200}, {e: 50}
-    ];
+    const rewards = [{m:10}, {m:20}, {m:50}, {m:70}, {m:100}, {m:200}, {e:50}];
 
-    const saved = localStorage.getItem('cw_v5');
+    const saved = localStorage.getItem('cw_v6');
     if (saved) s = {...s, ...JSON.parse(saved)};
 
     function upd() {
-        // Главный экран
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('cur-e').innerText = Math.floor(s.e);
         document.getElementById('max-e').innerText = s.maxE;
@@ -158,21 +151,21 @@
         document.getElementById('st-spent').innerText = Math.floor(s.spent).toLocaleString();
         document.getElementById('st-refs').innerText = s.refs;
 
-        localStorage.setItem('cw_v5', JSON.stringify(s));
+        localStorage.setItem('cw_v6', JSON.stringify(s));
     }
 
     function hit(e) {
         if(e.type==='touchstart') e.preventDefault();
-        if(s.e < s.p) return;
+        if(s.e < s.p) {
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            return;
+        }
 
-        s.e -= s.p;
-        s.bl += s.p;
-        s.total += s.p;
+        s.e -= s.p; s.bl += s.p; s.total += s.p;
 
-        // Вспышка фона
         const f = document.getElementById('flash');
         f.style.opacity = "1";
-        setTimeout(() => f.style.opacity = "0", 100);
+        setTimeout(() => f.style.opacity = "0", 80);
 
         if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
@@ -193,7 +186,6 @@
         saveDB();
     }
 
-    // БОНУСЫ
     function showBonus() {
         const grid = document.getElementById('bonus-grid');
         grid.innerHTML = rewards.map((r, i) => `
@@ -212,24 +204,23 @@
         const reward = rewards[s.bonusDay];
         if (reward.m) s.bl += reward.m;
         if (reward.e) s.maxE += reward.e;
-        
         s.lastBonus = Date.now();
         s.bonusDay = (s.bonusDay + 1) % 7;
-        upd();
-        showBonus();
-        alert("Награда получена!");
+        upd(); showBonus();
+        if(tg.showAlert) tg.showAlert("Награда получена!");
     }
 
-    // РЕФЕРАЛЫ
     function copyRef() {
         const link = `https://t.me/ClickWarBot_bot?start=${u.id}`;
-        navigator.clipboard.writeText(link);
-        alert("Ссылка скопирована! Отправь её другу. Когда он зайдет, ты получишь +50 к макс. энергии (симуляция).");
-        // Для теста просто добавим бонус:
-        s.refs++; s.maxE += 50; upd();
+        const input = document.createElement('input');
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        if(tg.showAlert) tg.showAlert("Ссылка скопирована! Отправь её другу.");
     }
 
-    // БАЗА ДАННЫХ
     async function saveDB() {
         try { await sb.from('leaderboard').upsert({ id: u.id, name: u.first_name, score: Math.floor(s.bl) }); } catch(e) {}
     }
@@ -239,7 +230,7 @@
         const l = document.getElementById('rank-list');
         l.innerText = "Загрузка...";
         const { data } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
-        l.innerHTML = data.map((p,i)=>`<div class="item"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
+        l.innerHTML = data.map((p,i)=>`<div class="item"><span>${i+1}. ${p.name}</span><b>${p.score.toLocaleString()}</b></div>`).join('');
     }
 
     function showModal(id) { 
@@ -248,14 +239,10 @@
     }
     function closeModal(id) { document.getElementById(id).style.display='none'; }
 
-    // Реген энергии (1 ед / 6 сек)
-    setInterval(() => {
-        if(s.e < s.maxE) { s.e += 1; upd(); }
-    }, 6000);
-
+    setInterval(() => { if(s.e < s.maxE) { s.e += 1; upd(); } }, 6000);
     setInterval(saveDB, 20000);
     upd();
 </script>
 </body>
-                </html>
-                
+            </html>
+        
