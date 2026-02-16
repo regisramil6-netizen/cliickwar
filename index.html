@@ -6,234 +6,143 @@
     <title>CLICKWAR ONLINE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        body {
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            color: white; font-family: 'Segoe UI', sans-serif;
-            text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none;
-        }
+        body { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none; }
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .user-header { background: rgba(255, 255, 255, 0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; font-size: 14px; }
-        .rank-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 18px; }
-        
-        h1 { color: #ff4d4d; text-shadow: 0 0 15px #ff4d4d; margin: 5px 0; font-size: 24px; }
-
-        /* ЭФФЕКТЫ БОССА */
-        #boss-container { position: relative; display: inline-block; margin: 30px 0; z-index: 1; }
-        #boss { width: 230px; position: relative; z-index: 10; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
-        #boss:active { transform: scale(0.92); }
-
-        .magic-circle {
-            position: absolute; top: 50%; left: 50%; width: 340px; height: 340px;
-            margin-top: -170px; margin-left: -170px;
-            background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center;
-            background-size: contain; opacity: 0.25; animation: rotateCircle 20s linear infinite;
-            z-index: -1;
-        }
-
-        .aura-glow {
-            position: absolute; top: 50%; left: 50%; width: 220px; height: 220px;
-            margin-top: -110px; margin-left: -110px;
-            background: rgba(255, 77, 77, 0.2); border-radius: 50%;
-            box-shadow: 0 0 60px 30px rgba(255, 77, 77, 0.3);
-            animation: pulseGlow 2s ease-in-out infinite;
-            z-index: -2;
-        }
-
-        @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulseGlow { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.3); opacity: 0.5; } }
-
-        /* ИНТЕРФЕЙС */
+        .user-header { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; }
+        .rank-btn { background: rgba(255,215,0,0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 20px; }
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
+        #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; }
+        #boss:active { transform: scale(0.95); }
+        .magic-circle { position: absolute; top: 50%; left: 50%; width: 340px; height: 340px; margin-top: -170px; margin-left: -170px; background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center; background-size: contain; opacity: 0.2; animation: rot 20s linear infinite; z-index: 1; }
+        @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; }
-        .bal-text { color: #ffd700; font-size: 22px; font-weight: bold; }
         .shop { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-        .upgrade-card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
-        .upgrade-card button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
-        .upgrade-card button:disabled { background: #444; color: #888; }
-
-        .damage-text {
-            position: absolute; color: #ff4d4d; font-weight: bold; font-size: 32px;
-            pointer-events: none; z-index: 100; text-shadow: 0 0 5px #000;
-            animation: floatDamage 0.7s ease-out forwards;
-        }
-        @keyframes floatDamage { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
-
-        /* ОКНО РЕЙТИНГА */
-        #leaderboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
-        .leaderboard-window { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 80vh; overflow-y: auto; }
-        .leader-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
-        .close-btn { margin-top: 20px; padding: 10px 30px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
+        button { background: #28a745; color: white; border: none; padding: 7px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        button:disabled { background: #444; }
+        .dmg { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.7s linear forwards; }
+        @keyframes fly { to { opacity: 0; transform: translateY(-100px); } }
+        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
+        .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 80vh; overflow-y: auto; }
+        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
-
-<div class="header-box">
-    <div class="user-header" id="user-display">⚔️ Игрок</div>
-    <div class="rank-btn" onclick="toggleLeaderboard()">🏆</div>
-</div>
-
-<h1>🔥 CLICKWAR 🔥</h1>
-
-<div class="stats-panel">
-    <div style="font-size: 14px; opacity: 0.8;">BOSS HP: <span id="hp">1,000,000</span></div>
-    <div class="bal-text">🪙 <span id="bal">0</span> CW</div>
-</div>
-
-<div id="boss-container">
-    <div class="magic-circle"></div>
-    <div class="aura-glow"></div>
-    <img id="boss" src="boss.png" alt="Boss" onmousedown="handleHit(event)" ontouchstart="handleHit(event)">
-</div>
-
-<div class="shop">
-    <div class="upgrade-card">Урон +1<button id="btn-pwr" onclick="buy('pwr')">50</button></div>
-    <div class="upgrade-card">Авто +1<button id="btn-auto" onclick="buy('auto')">150</button></div>
-</div>
-
-<div id="leaderboard-overlay">
-    <div class="leaderboard-window">
-        <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
-        <div id="leaderboard-list">Загрузка...</div>
-        <button class="close-btn" onclick="toggleLeaderboard()">НАЗАД</button>
+    <div class="header-box">
+        <div class="user-header" id="un">⚔️ Игрок</div>
+        <div class="rank-btn" onclick="showRank()">🏆</div>
     </div>
-</div>
+    <div class="stats-panel">
+        <div style="font-size:12px;opacity:0.6">BOSS HP: <span id="hp">1,000,000</span></div>
+        <div style="color:#ffd700;font-size:20px;font-weight:bold">🪙 <span id="bl">0</span></div>
+    </div>
+    <div id="boss-container">
+        <div class="magic-circle"></div>
+        <img id="boss" src="boss.png" onmousedown="hit(event)" ontouchstart="hit(event)">
+    </div>
+    <div class="shop">
+        <div class="card">Урон +1<button id="b1" onclick="buy('p')">50</button></div>
+        <div class="card">Авто +1<button id="b2" onclick="buy('a')">150</button></div>
+    </div>
+    <div id="ov">
+        <div class="win">
+            <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
+            <div id="list">Загрузка...</div>
+            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d;margin-top:20px;cursor:pointer">НАЗАД</button>
+        </div>
+    </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
     
-    // НАСТРОЙКИ SUPABASE
+    // Настройки Supabase
     const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co"; 
     const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
-    
-    let supabaseClient = null;
+    const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    // Инициализация с проверкой
-    try {
-        if (typeof supabase !== 'undefined') {
-            supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        }
-    } catch(e) { console.error("Ошибка Supabase"); }
+    const u = tg.initDataUnsafe?.user || {id: 12345, first_name: "Игрок"};
+    document.getElementById('un').innerText = "⚔️ " + u.first_name;
 
-    const user = tg.initDataUnsafe?.user;
-    const userName = user ? user.first_name : "Игрок";
-    const userId = user ? user.id : 999;
-    document.getElementById('user-display').innerText = `⚔️ ${userName}`;
+    let s = { hp: 1000000, bl: 0, p: 1, a: 0, cP: 50, cA: 150 };
+    const ld = localStorage.getItem('cw_save');
+    if (ld) s = JSON.parse(ld);
 
-    // Состояние игры
-    let state = { hp: 1000000, bal: 0, pwr: 1, auto: 0, costPwr: 50, costAuto: 150 };
-    const saved = localStorage.getItem('cw_v_final_cloud');
-    if (saved) state = JSON.parse(saved);
-
-    function updateUI() {
-        document.getElementById('hp').innerText = Math.floor(state.hp).toLocaleString();
-        document.getElementById('bal').innerText = Math.floor(state.bal).toLocaleString();
-        document.getElementById('btn-pwr').innerText = state.costPwr;
-        document.getElementById('btn-auto').innerText = state.costAuto;
-        document.getElementById('btn-pwr').disabled = state.bal < state.costPwr;
-        document.getElementById('btn-auto').disabled = state.bal < state.costAuto;
-        localStorage.setItem('cw_v_final_cloud', JSON.stringify(state));
+    function upd() {
+        document.getElementById('hp').innerText = Math.floor(s.hp).toLocaleString();
+        document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
+        document.getElementById('b1').innerText = s.cP;
+        document.getElementById('b2').innerText = s.cA;
+        document.getElementById('b1').disabled = s.bl < s.cP;
+        document.getElementById('b2').disabled = s.bl < s.cA;
+        localStorage.setItem('cw_save', JSON.stringify(s));
     }
 
-    // Сохранение в облако
-    async function saveToCloud() {
-        if (!supabaseClient) return;
-        try {
-            await supabaseClient.from('leaderboard').upsert({ 
-                id: userId, 
-                name: userName, 
-                score: Math.floor(state.bal) 
-            });
-        } catch (e) { console.warn("Cloud save error"); }
+    async function save() {
+        try { 
+            await sb.from('leaderboard').upsert({ 
+                id: u.id, 
+                name: u.first_name, 
+                score: Math.floor(s.bl) 
+            }); 
+        } catch(e) { console.error("Ошибка сохранения"); }
     }
 
-    // Клик по боссу
-    function handleHit(e) {
-        if(e.type === 'touchstart') e.preventDefault();
-        
-        state.hp -= state.pwr;
-        state.bal += state.pwr;
-        
-        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-        const text = document.createElement('div');
-        text.className = 'damage-text';
-        text.innerText = `-${state.pwr}`;
+    function hit(e) {
+        if(e.type==='touchstart') e.preventDefault();
+        s.hp -= s.p; s.bl += s.p;
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        const d = document.createElement('div');
+        d.className='dmg'; d.innerText=`-${s.p}`;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        text.style.left = `${x - 15}px`;
-        text.style.top = `${y - 30}px`;
-        document.body.appendChild(text);
-        setTimeout(() => text.remove(), 700);
-
-        updateUI();
+        d.style.left=`${x}px`; d.style.top=`${y}px`;
+        document.body.appendChild(d);
+        setTimeout(()=>d.remove(), 700);
+        upd();
     }
 
-    // Покупка
-    function buy(type) {
-        if (type === 'pwr' && state.bal >= state.costPwr) {
-            state.bal -= state.costPwr; state.pwr += 1;
-            state.costPwr = Math.floor(state.costPwr * 1.6);
-        } else if (type === 'auto' && state.bal >= state.costAuto) {
-            state.bal -= state.costAuto; state.auto += 1;
-            state.costAuto = Math.floor(state.costAuto * 1.8);
-        }
-        updateUI();
-        saveToCloud();
+    function buy(t) {
+        if(t==='p' && s.bl>=s.cP){ s.bl-=s.cP; s.p++; s.cP=Math.floor(s.cP*1.6); }
+        if(t==='a' && s.bl>=s.cA){ s.bl-=s.cA; s.a++; s.cA=Math.floor(s.cA*1.8); }
+        upd(); 
+        save();
     }
 
-    // Загрузка рейтинга
-    async function toggleLeaderboard() {
-        const ov = document.getElementById('leaderboard-overlay');
-        const isOpening = ov.style.display !== 'block';
-        ov.style.display = isOpening ? 'block' : 'none';
-        
-        if (isOpening) {
-            const list = document.getElementById('leaderboard-list');
-            list.innerText = "Загрузка...";
+    // ТВОЯ НОВАЯ ФУНКЦИЯ REANK
+    async function showRank() {
+        document.getElementById('ov').style.display='block';
+        const l = document.getElementById('list');
+        l.innerText = "Связь с базой...";
+        try {
+            const { data, error } = await sb
+                .from('leaderboard')
+                .select('*')
+                .order('score', {ascending: false})
+                .limit(10);
             
-            if (!supabaseClient) {
-                list.innerText = "Ошибка: Библиотека базы не загружена!";
-                return;
-            }
+            if (error) throw error;
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('leaderboard')
-                    .select('*')
-                    .order('score', { ascending: false })
-                    .limit(10);
-                
-                if (error) throw error;
-
-                if (data.length === 0) {
-                    list.innerText = "Рейтинг пуст. Стань первым!";
-                } else {
-                    list.innerHTML = data.map((p, i) => `
-                        <div class="leader-item" style="${p.id == userId ? 'color:#00d2ff; font-weight:bold;' : ''}">
-                            <span>${i+1}. ${p.name} ${p.id == userId ? '(ВЫ)' : ''}</span>
-                            <span style="color:#ffd700">${p.score.toLocaleString()}</span>
-                        </div>
-                    `).join('');
-                }
-            } catch (e) {
-                list.innerText = "Ошибка доступа. Проверь RLS в Supabase!";
-                console.error(e);
+            if (!data || data.length === 0) {
+                l.innerText = "Рейтинг пуст. Стань первым!";
+            } else {
+                l.innerHTML = data.map((p,i)=>`
+                    <div class="item" style="${p.id == u.id ? 'color:#00d2ff; font-weight:bold;' : ''}">
+                        <span>${i+1}. ${p.name}</span>
+                        <b style="color:#ffd700">${p.score.toLocaleString()}</b>
+                    </div>
+                `).join('');
             }
+        } catch(e) { 
+            l.innerText = "Ошибка: " + (e.message || "Нет доступа");
+            console.error(e);
         }
     }
 
-    // Таймеры
-    setInterval(() => { 
-        if (state.auto > 0) { 
-            state.hp -= state.auto; state.bal += state.auto; updateUI(); 
-        } 
-    }, 1000);
-    
-    setInterval(saveToCloud, 20000);
-    updateUI();
+    setInterval(() => { if(s.a>0){ s.hp-=s.a; s.bl+=s.a; upd(); } }, 1000);
+    setInterval(save, 20000);
+    upd();
 </script>
 </body>
-    </html>
-    
+</html>
