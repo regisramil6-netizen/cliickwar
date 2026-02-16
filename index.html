@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLICKWAR ENERGY</title>
+    <title>CLICKWAR ENERGY PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -11,46 +11,38 @@
         
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .user-header { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; font-size: 14px; }
-        .rank-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 20px; transition: 0.3s; }
-        .rank-btn:active { transform: scale(1.2); }
+        .rank-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 20px; }
 
-        /* СТАТИСТИКА И ПОЛОСА */
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; }
-        .balance { color: #ffd700; font-size: 32px; font-weight: bold; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .balance { color: #ffd700; font-size: 32px; font-weight: bold; text-shadow: 0 0 15px rgba(255,215,0,0.4); }
         
-        .energy-container { width: 100%; height: 12px; background: #222; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 1px solid #444; }
-        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff8e8e); transition: width 0.1s linear; }
+        .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 1px solid #444; }
+        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff8e8e); transition: width 0.3s ease; box-shadow: 0 0 10px #ff4d4d; }
 
-        /* БОСС И ЭФФЕКТЫ */
-        #boss-container { position: relative; display: inline-block; margin: 50px 0; }
-        #boss { width: 240px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; filter: drop-shadow(0 0 15px rgba(255,77,77,0.4)); }
-        #boss:active { transform: scale(0.9); }
+        #boss-container { position: relative; display: inline-block; margin: 40px 0; }
+        #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; filter: drop-shadow(0 0 20px rgba(255,77,77,0.5)); }
+        #boss:active { transform: scale(0.85); }
 
         .magic-circle { 
-            position: absolute; top: 50%; left: 50%; width: 450px; height: 450px; 
-            margin-top: -225px; margin-left: -225px; 
+            position: absolute; top: 50%; left: 50%; width: 440px; height: 440px; 
+            margin-top: -220px; margin-left: -220px; 
             background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center; 
-            background-size: contain; opacity: 0.2; animation: rot 15s linear infinite; z-index: 1; 
+            background-size: contain; opacity: 0.15; animation: rot 15s linear infinite; z-index: 1; 
         }
         @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
 
-        /* МАГАЗИН */
-        .shop { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
-        .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; border-radius: 18px; width: 140px; }
-        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 8px; cursor: pointer; font-size: 16px; }
-        button:disabled { background: #333; color: #666; cursor: default; }
+        .shop { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 10px; border-radius: 18px; width: 48%; }
+        .lvl-tag { font-size: 10px; color: #aaa; margin-bottom: 4px; display: block; }
+        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; font-size: 14px; }
+        button:disabled { background: #333; color: #666; }
 
-        /* АНИМАЦИЯ ВЫЛЕТА МОНЕТ */
-        .dmg { position: fixed; color: #ffd700; font-weight: bold; font-size: 36px; pointer-events: none; animation: fly 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; z-index: 1000; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        @keyframes fly { 
-            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
-            100% { opacity: 0; transform: translateY(-150px) scale(1.5) rotate(15deg); }
-        }
+        .dmg { position: fixed; color: #ffd700; font-weight: bold; font-size: 36px; pointer-events: none; animation: fly 0.8s ease-out forwards; z-index: 1000; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-140px) scale(1.5); } }
 
-        /* ОКНО РЕЙТИНГА */
-        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); z-index: 2000; }
+        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); z-index: 2000; }
         .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 25px; padding: 25px; border: 1px solid #ff4d4d; }
-        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; font-size: 18px; }
+        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -61,11 +53,11 @@
 
     <div class="stats-panel">
         <div class="balance">🪙 <span id="bl">0</span></div>
-        <div style="font-size:12px; opacity:0.6; margin-top:5px; letter-spacing:1px;">ЭНЕРГИЯ КЛИКОВ</div>
+        <div style="font-size:11px; opacity:0.6; margin-top:8px; font-weight:bold;">⚡ ЭНЕРГИЯ (+<span id="bonus-e">0</span>)</div>
         <div class="energy-container">
             <div id="energy-bar"></div>
         </div>
-        <div id="energy-text" style="font-size:12px; margin-top:5px;">300 / 300</div>
+        <div id="energy-text" style="font-size:13px; margin-top:6px; font-weight:bold;">300 / 300</div>
     </div>
 
     <div id="boss-container">
@@ -74,15 +66,23 @@
     </div>
 
     <div class="shop">
-        <div class="card">Урон +1<button id="b1" onclick="buy('p')">50</button></div>
-        <div class="card">Авто +1<button id="b2" onclick="buy('a')">150</button></div>
+        <div class="card">
+            <span class="lvl-tag" id="lvl-p">LVL 1</span>
+            Сила +1
+            <button id="b1" onclick="buy('p')">50</button>
+        </div>
+        <div class="card">
+            <span class="lvl-tag" id="lvl-e">LVL 1</span>
+            Запас +10
+            <button id="b2" onclick="buy('e')">100</button>
+        </div>
     </div>
 
     <div id="ov">
         <div class="win">
             <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
             <div id="list">Загрузка...</div>
-            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d; margin-top:20px;">ЗАКРЫТЬ</button>
+            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d; margin-top:20px; padding:10px 20px; border:none; border-radius:10px; color:white;">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -97,36 +97,36 @@
     const u = tg.initDataUnsafe?.user || {id: 777, first_name: "Игрок"};
     document.getElementById('un').innerText = "⚔️ " + u.first_name;
 
-    // Состояние игры
     let s = { 
         bl: 0, 
         p: 1, 
-        a: 0, 
         cP: 50, 
-        cA: 150, 
+        cE: 100, 
         energy: 300, 
-        maxEnergy: 300 
+        maxEnergy: 300,
+        lvlP: 1,
+        lvlE: 1
     };
 
-    let timerActive = false;
-    let clicksThisSession = 0;
-
-    const saved = localStorage.getItem('cw_v2_energy');
+    const saved = localStorage.getItem('cw_v4_levels');
     if (saved) s = {...s, ...JSON.parse(saved)};
 
     function upd() {
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
         document.getElementById('b1').innerText = s.cP;
-        document.getElementById('b2').innerText = s.cA;
-        document.getElementById('b1').disabled = s.bl < s.cP;
-        document.getElementById('b2').disabled = s.bl < s.cA;
+        document.getElementById('b2').innerText = s.cE;
+        document.getElementById('lvl-p').innerText = `LVL ${s.lvlP}`;
+        document.getElementById('lvl-e').innerText = `LVL ${s.lvlE}`;
+        document.getElementById('bonus-e').innerText = (s.maxEnergy - 300);
         
-        // Обновление полосы энергии
+        document.getElementById('b1').disabled = s.bl < s.cP;
+        document.getElementById('b2').disabled = s.bl < s.cE;
+        
         const percent = (s.energy / s.maxEnergy) * 100;
         document.getElementById('energy-bar').style.width = percent + "%";
         document.getElementById('energy-text').innerText = `${Math.floor(s.energy)} / ${s.maxEnergy}`;
         
-        localStorage.setItem('cw_v2_energy', JSON.stringify(s));
+        localStorage.setItem('cw_v4_levels', JSON.stringify(s));
     }
 
     async function save() {
@@ -135,17 +135,13 @@
 
     function hit(e) {
         if(e.type==='touchstart') e.preventDefault();
-        if(s.energy < s.p) return; // Нет энергии - нет клика
+        if(s.energy < s.p) {
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            return;
+        }
 
         s.energy -= s.p;
         s.bl += s.p;
-        clicksThisSession++;
-
-        // Запуск таймера после первых кликов
-        if (!timerActive && clicksThisSession >= 1) {
-            timerActive = true;
-            startRegen();
-        }
 
         if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         
@@ -160,23 +156,25 @@
         upd();
     }
 
-    // Регенерация энергии (таймер)
-    function startRegen() {
-        setInterval(() => {
-            if (s.energy < s.maxEnergy) {
-                s.energy += 1; // Скорость восстановления
-                if (s.energy > s.maxEnergy) s.energy = s.maxEnergy;
-                upd();
-            }
-        }, 1000);
-    }
-
     function buy(t) {
-        if(t==='p' && s.bl>=s.cP){ s.bl-=s.cP; s.p++; s.cP=Math.floor(s.cP*1.6); }
-        if(t==='a' && s.bl>=s.cA){ s.bl-=s.cA; s.a++; s.cA=Math.floor(s.cA*1.8); }
+        if(t==='p' && s.bl>=s.cP){ 
+            s.bl-=s.cP; s.p++; s.lvlP++; s.cP=Math.floor(s.cP*1.6); 
+        }
+        if(t==='e' && s.bl>=s.cE){ 
+            s.bl-=s.cE; s.maxEnergy += 10; s.lvlE++; s.energy += 10; s.cE=Math.floor(s.cE*1.8); 
+        }
         upd();
         save();
     }
+
+    // Регенерация: 1 единица раз в 6 секунд
+    setInterval(() => {
+        if (s.energy < s.maxEnergy) {
+            s.energy += 1;
+            if (s.energy > s.maxEnergy) s.energy = s.maxEnergy;
+            upd();
+        }
+    }, 6000); 
 
     async function showRank() {
         document.getElementById('ov').style.display='block';
@@ -188,22 +186,14 @@
             l.innerHTML = data.map((p,i)=>`
                 <div class="item" style="${p.id == u.id ? 'background:rgba(255,215,0,0.1);border-radius:10px;' : ''}">
                     <span>${i+1}. ${p.name}</span>
-                    <b style="color:#ffd700">${(p.score || 0).toLocaleString()}</b>
+                    <b>${(p.score || 0).toLocaleString()}</b>
                 </div>`).join('');
         } catch(e) { l.innerText = "Ошибка доступа"; }
     }
 
-    // Автоклик (тоже тратит энергию, но приносит монеты)
-    setInterval(() => { 
-        if(s.a > 0 && s.energy >= s.a) { 
-            s.energy -= s.a; 
-            s.bl += s.a; 
-            upd(); 
-        } 
-    }, 1000);
-
-    setInterval(save, 15000);
+    setInterval(save, 20000);
     upd();
 </script>
 </body>
-</html>
+    </html>
+    
