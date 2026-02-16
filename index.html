@@ -3,86 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLICKWAR ENERGY PRO</title>
+    <title>CLICKWAR ULTIMATE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root { --accent: #ff4d4d; --gold: #ffd700; }
         body { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 15px; overflow: hidden; user-select: none; }
         
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .user-header { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; font-size: 14px; }
-        .rank-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 20px; }
+        .user-info { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid #333; }
+        .user-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; border: 1px solid var(--accent); }
+        .nav-btns { display: flex; gap: 8px; }
+        .circle-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
 
-        .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; }
-        .balance { color: #ffd700; font-size: 32px; font-weight: bold; text-shadow: 0 0 15px rgba(255,215,0,0.4); }
-        
-        .energy-container { width: 100%; height: 14px; background: #222; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 1px solid #444; }
-        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff8e8e); transition: width 0.3s ease; box-shadow: 0 0 10px #ff4d4d; }
+        /* СТАТИСТИКА */
+        .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 15px; border: 1px solid #444; position: relative; }
+        .balance { color: var(--gold); font-size: 32px; font-weight: bold; }
+        .energy-container { width: 100%; height: 12px; background: #222; border-radius: 10px; margin-top: 10px; border: 1px solid #444; overflow: hidden; }
+        #energy-bar { width: 100%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff8e8e); transition: width 0.3s; }
 
-        #boss-container { position: relative; display: inline-block; margin: 40px 0; }
-        #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; filter: drop-shadow(0 0 20px rgba(255,77,77,0.5)); }
-        #boss:active { transform: scale(0.85); }
-
-        .magic-circle { 
-            position: absolute; top: 50%; left: 50%; width: 440px; height: 440px; 
-            margin-top: -220px; margin-left: -220px; 
-            background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center; 
-            background-size: contain; opacity: 0.15; animation: rot 15s linear infinite; z-index: 1; 
-        }
+        /* БОСС И ЭФФЕКТЫ */
+        #boss-container { position: relative; display: inline-block; margin: 40px 0; border-radius: 50%; transition: background 0.2s; }
+        .boss-bg-flash { position: absolute; top: 50%; left: 50%; width: 250px; height: 250px; margin: -125px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%); opacity: 0; transition: opacity 0.1s; z-index: 5; }
+        #boss { width: 230px; position: relative; z-index: 10; transition: transform 0.05s; cursor: pointer; }
+        #boss:active { transform: scale(0.9); }
+        .magic-circle { position: absolute; top: 50%; left: 50%; width: 400px; height: 400px; margin: -200px; background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center/contain; opacity: 0.1; animation: rot 15s linear infinite; }
         @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
 
-        .shop { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 10px; border-radius: 18px; width: 48%; }
-        .lvl-tag { font-size: 10px; color: #aaa; margin-bottom: 4px; display: block; }
-        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; font-size: 14px; }
-        button:disabled { background: #333; color: #666; }
+        /* МАГАЗИН */
+        .shop { display: flex; justify-content: center; gap: 10px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 10px; border-radius: 15px; width: 48%; }
+        button { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
 
-        .dmg { position: fixed; color: #ffd700; font-weight: bold; font-size: 36px; pointer-events: none; animation: fly 0.8s ease-out forwards; z-index: 1000; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-140px) scale(1.5); } }
-
-        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); z-index: 2000; }
-        .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 25px; padding: 25px; border: 1px solid #ff4d4d; }
-        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        /* ОКНА */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 2000; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: #1a1a1a; border-radius: 25px; padding: 20px; border: 1px solid var(--accent); max-height: 80vh; overflow-y: auto; }
+        .close-btn { background: var(--accent); border: none; padding: 10px 20px; border-radius: 10px; color: white; margin-top: 20px; width: 100%; }
+        
+        /* БОНУСЫ */
+        .bonus-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .day-box { background: #222; border: 1px solid #444; padding: 8px; border-radius: 10px; font-size: 11px; opacity: 0.5; }
+        .day-box.active { border-color: var(--gold); opacity: 1; background: rgba(255,215,0,0.1); }
+        
+        .dmg { position: fixed; color: var(--gold); font-weight: bold; font-size: 32px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 1000; }
+        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
+
     <div class="header-box">
-        <div class="user-header" id="un">⚔️ Игрок</div>
-        <div class="rank-btn" onclick="showRank()">🏆</div>
+        <div class="user-info" onclick="showModal('profile-modal')">
+            <img id="avatar" class="user-avatar" src="https://img.icons8.com/ios-filled/50/ff4d4d/user-male-circle.png">
+            <span id="un">Игрок</span>
+        </div>
+        <div class="nav-btns">
+            <div class="circle-btn" onclick="showModal('bonus-modal')">🎁</div>
+            <div class="circle-btn" onclick="showRank()">🏆</div>
+        </div>
     </div>
 
     <div class="stats-panel">
         <div class="balance">🪙 <span id="bl">0</span></div>
-        <div style="font-size:11px; opacity:0.6; margin-top:8px; font-weight:bold;">⚡ ЭНЕРГИЯ (+<span id="bonus-e">0</span>)</div>
-        <div class="energy-container">
-            <div id="energy-bar"></div>
-        </div>
-        <div id="energy-text" style="font-size:13px; margin-top:6px; font-weight:bold;">300 / 300</div>
+        <div class="energy-container"><div id="energy-bar"></div></div>
+        <div style="font-size:12px; margin-top:5px;"><span id="cur-e">300</span> / <span id="max-e">300</span></div>
     </div>
 
     <div id="boss-container">
+        <div class="boss-bg-flash" id="flash"></div>
         <div class="magic-circle"></div>
         <img id="boss" src="boss.png" onmousedown="hit(event)" ontouchstart="hit(event)">
     </div>
 
     <div class="shop">
-        <div class="card">
-            <span class="lvl-tag" id="lvl-p">LVL 1</span>
-            Сила +1
-            <button id="b1" onclick="buy('p')">50</button>
-        </div>
-        <div class="card">
-            <span class="lvl-tag" id="lvl-e">LVL 1</span>
-            Запас +10
-            <button id="b2" onclick="buy('e')">100</button>
+        <div class="card"><small id="lvlP">LVL 1</small><br>Сила +1<button id="b1" onclick="buy('p')">50</button></div>
+        <div class="card"><small id="lvlE">LVL 1</small><br>Запас +10<button id="b2" onclick="buy('e')">100</button></div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--accent)">ЛИЧНЫЙ КАБИНЕТ</h2>
+            <div style="text-align:left; line-height: 2;">
+                <p>💰 Текущий баланс: <b id="st-cur" style="color:var(--gold)">0</b></p>
+                <p>📈 Всего заработано: <b id="st-total">0</b></p>
+                <p>📉 Всего потрачено: <b id="st-spent">0</b></p>
+                <hr style="border:0; border-top:1px solid #333">
+                <p>👥 Рефералов: <b id="st-refs">0</b></p>
+                <button onclick="copyRef()" style="background:#0088cc">Пригласить друга (+50⚡)</button>
+            </div>
+            <button class="close-btn" onclick="closeModal('profile-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
-    <div id="ov">
-        <div class="win">
-            <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
-            <div id="list">Загрузка...</div>
-            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d; margin-top:20px; padding:10px 20px; border:none; border-radius:10px; color:white;">ЗАКРЫТЬ</button>
+    <div id="bonus-modal" class="modal">
+        <div class="modal-content">
+            <h2>ЕЖЕДНЕВНЫЙ БОНУС</h2>
+            <div class="bonus-grid" id="bonus-grid"></div>
+            <button id="claim-btn" onclick="claimDaily()" style="margin-top:20px; background:var(--gold); color:black">ЗАБРАТЬ НАГРАДУ</button>
+            <button class="close-btn" onclick="closeModal('bonus-modal')">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="rank-modal" class="modal">
+        <div class="modal-content">
+            <h2>🏆 ТОП ИГРОКОВ</h2>
+            <div id="rank-list"></div>
+            <button class="close-btn" onclick="closeModal('rank-modal')">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -94,106 +120,142 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    const u = tg.initDataUnsafe?.user || {id: 777, first_name: "Игрок"};
-    document.getElementById('un').innerText = "⚔️ " + u.first_name;
+    const u = tg.initDataUnsafe?.user || {id: 123, first_name: "Игрок"};
+    document.getElementById('un').innerText = u.first_name;
+    if(u.photo_url) document.getElementById('avatar').src = u.photo_url;
 
     let s = { 
-        bl: 0, 
-        p: 1, 
-        cP: 50, 
-        cE: 100, 
-        energy: 300, 
-        maxEnergy: 300,
-        lvlP: 1,
-        lvlE: 1
+        bl: 0, total: 0, spent: 0, 
+        p: 1, cP: 50, 
+        e: 300, maxE: 300, cE: 100,
+        lvlP: 1, lvlE: 1,
+        lastBonus: 0, bonusDay: 0, refs: 0
     };
 
-    const saved = localStorage.getItem('cw_v4_levels');
+    const rewards = [
+        {m: 10}, {m: 20}, {m: 50}, {m: 70}, {m: 100}, {m: 200}, {e: 50}
+    ];
+
+    const saved = localStorage.getItem('cw_v5');
     if (saved) s = {...s, ...JSON.parse(saved)};
 
     function upd() {
+        // Главный экран
         document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
+        document.getElementById('cur-e').innerText = Math.floor(s.e);
+        document.getElementById('max-e').innerText = s.maxE;
+        document.getElementById('energy-bar').style.width = (s.e / s.maxE * 100) + "%";
+        document.getElementById('lvlP').innerText = "LVL " + s.lvlP;
+        document.getElementById('lvlE').innerText = "LVL " + s.lvlE;
         document.getElementById('b1').innerText = s.cP;
         document.getElementById('b2').innerText = s.cE;
-        document.getElementById('lvl-p').innerText = `LVL ${s.lvlP}`;
-        document.getElementById('lvl-e').innerText = `LVL ${s.lvlE}`;
-        document.getElementById('bonus-e').innerText = (s.maxEnergy - 300);
-        
         document.getElementById('b1').disabled = s.bl < s.cP;
         document.getElementById('b2').disabled = s.bl < s.cE;
-        
-        const percent = (s.energy / s.maxEnergy) * 100;
-        document.getElementById('energy-bar').style.width = percent + "%";
-        document.getElementById('energy-text').innerText = `${Math.floor(s.energy)} / ${s.maxEnergy}`;
-        
-        localStorage.setItem('cw_v4_levels', JSON.stringify(s));
-    }
 
-    async function save() {
-        try { await sb.from('leaderboard').upsert({ id: u.id, name: u.first_name, score: Math.floor(s.bl) }); } catch(e) {}
+        // Личный кабинет (Live)
+        document.getElementById('st-cur').innerText = Math.floor(s.bl).toLocaleString();
+        document.getElementById('st-total').innerText = Math.floor(s.total).toLocaleString();
+        document.getElementById('st-spent').innerText = Math.floor(s.spent).toLocaleString();
+        document.getElementById('st-refs').innerText = s.refs;
+
+        localStorage.setItem('cw_v5', JSON.stringify(s));
     }
 
     function hit(e) {
         if(e.type==='touchstart') e.preventDefault();
-        if(s.energy < s.p) {
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            return;
-        }
+        if(s.e < s.p) return;
 
-        s.energy -= s.p;
+        s.e -= s.p;
         s.bl += s.p;
+        s.total += s.p;
+
+        // Вспышка фона
+        const f = document.getElementById('flash');
+        f.style.opacity = "1";
+        setTimeout(() => f.style.opacity = "0", 100);
 
         if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-        
+
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        d.style.left=`${x - 20}px`; d.style.top=`${y - 20}px`;
+        d.style.left=`${x-15}px`; d.style.top=`${y-15}px`;
         document.body.appendChild(d);
-        setTimeout(()=>d.remove(), 800);
-        
+        setTimeout(()=>d.remove(), 600);
         upd();
     }
 
     function buy(t) {
-        if(t==='p' && s.bl>=s.cP){ 
-            s.bl-=s.cP; s.p++; s.lvlP++; s.cP=Math.floor(s.cP*1.6); 
-        }
-        if(t==='e' && s.bl>=s.cE){ 
-            s.bl-=s.cE; s.maxEnergy += 10; s.lvlE++; s.energy += 10; s.cE=Math.floor(s.cE*1.8); 
-        }
+        if(t==='p' && s.bl>=s.cP){ s.bl-=s.cP; s.spent+=s.cP; s.p++; s.lvlP++; s.cP=Math.floor(s.cP*1.7); }
+        if(t==='e' && s.bl>=s.cE){ s.bl-=s.cE; s.spent+=s.cE; s.maxE+=10; s.e+=10; s.lvlE++; s.cE=Math.floor(s.cE*1.8); }
         upd();
-        save();
+        saveDB();
     }
 
-    // Регенерация: 1 единица раз в 6 секунд
-    setInterval(() => {
-        if (s.energy < s.maxEnergy) {
-            s.energy += 1;
-            if (s.energy > s.maxEnergy) s.energy = s.maxEnergy;
-            upd();
-        }
-    }, 6000); 
+    // БОНУСЫ
+    function showBonus() {
+        const grid = document.getElementById('bonus-grid');
+        grid.innerHTML = rewards.map((r, i) => `
+            <div class="day-box ${s.bonusDay === i ? 'active' : ''}">
+                ДЕНЬ ${i+1}<br><b>${r.m ? r.m+'🪙' : r.e+'⚡'}</b>
+            </div>
+        `).join('');
+        
+        const now = Date.now();
+        const canClaim = now - s.lastBonus > 86400000;
+        document.getElementById('claim-btn').disabled = !canClaim;
+        document.getElementById('claim-btn').innerText = canClaim ? "ЗАБРАТЬ" : "ЖДИТЕ 24Ч";
+    }
+
+    function claimDaily() {
+        const reward = rewards[s.bonusDay];
+        if (reward.m) s.bl += reward.m;
+        if (reward.e) s.maxE += reward.e;
+        
+        s.lastBonus = Date.now();
+        s.bonusDay = (s.bonusDay + 1) % 7;
+        upd();
+        showBonus();
+        alert("Награда получена!");
+    }
+
+    // РЕФЕРАЛЫ
+    function copyRef() {
+        const link = `https://t.me/ClickWarBot_bot?start=${u.id}`;
+        navigator.clipboard.writeText(link);
+        alert("Ссылка скопирована! Отправь её другу. Когда он зайдет, ты получишь +50 к макс. энергии (симуляция).");
+        // Для теста просто добавим бонус:
+        s.refs++; s.maxE += 50; upd();
+    }
+
+    // БАЗА ДАННЫХ
+    async function saveDB() {
+        try { await sb.from('leaderboard').upsert({ id: u.id, name: u.first_name, score: Math.floor(s.bl) }); } catch(e) {}
+    }
 
     async function showRank() {
-        document.getElementById('ov').style.display='block';
-        const l = document.getElementById('list');
+        showModal('rank-modal');
+        const l = document.getElementById('rank-list');
         l.innerText = "Загрузка...";
-        try {
-            const { data, error } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
-            if (error) throw error;
-            l.innerHTML = data.map((p,i)=>`
-                <div class="item" style="${p.id == u.id ? 'background:rgba(255,215,0,0.1);border-radius:10px;' : ''}">
-                    <span>${i+1}. ${p.name}</span>
-                    <b>${(p.score || 0).toLocaleString()}</b>
-                </div>`).join('');
-        } catch(e) { l.innerText = "Ошибка доступа"; }
+        const { data } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
+        l.innerHTML = data.map((p,i)=>`<div class="item"><span>${i+1}. ${p.name}</span><b>${p.score}</b></div>`).join('');
     }
 
-    setInterval(save, 20000);
+    function showModal(id) { 
+        document.getElementById(id).style.display='block'; 
+        if(id==='bonus-modal') showBonus();
+    }
+    function closeModal(id) { document.getElementById(id).style.display='none'; }
+
+    // Реген энергии (1 ед / 6 сек)
+    setInterval(() => {
+        if(s.e < s.maxE) { s.e += 1; upd(); }
+    }, 6000);
+
+    setInterval(saveDB, 20000);
     upd();
 </script>
 </body>
-    </html>
-    
+                </html>
+                
