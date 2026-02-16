@@ -11,19 +11,37 @@
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .user-header { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid #333; }
         .rank-btn { background: rgba(255,215,0,0.1); border: 1px solid #ffd700; border-radius: 12px; padding: 8px 12px; cursor: pointer; font-size: 20px; }
-        #boss-container { position: relative; display: inline-block; margin: 20px 0; }
-        #boss { width: 220px; position: relative; z-index: 10; transition: transform 0.05s; border-radius: 20px; }
+        
+        /* КОНТЕЙНЕР ДЛЯ БОССА И КРУГА */
+        #boss-container { position: relative; display: inline-block; margin: 30px 0; }
+        #boss { width: 220px; position: relative; z-index: 10; transition: transform 0.05s; border-radius: 20px; cursor: pointer; }
         #boss:active { transform: scale(0.95); }
+        
+        .magic-circle { 
+            position: absolute; top: 50%; left: 50%; width: 320px; height: 320px; 
+            margin-top: -160px; margin-left: -160px; 
+            background: url('https://img.icons8.com/ios/150/ff4d4d/sacred-geometry.png') no-repeat center; 
+            background-size: contain; opacity: 0.15; animation: rot 20s linear infinite; z-index: 1; 
+        }
+        @keyframes rot { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
+
         .stats-panel { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 12px; border: 1px solid #444; margin-bottom: 10px; }
         .shop { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
         .card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 15px; width: 130px; }
+        
         button { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; cursor: pointer; }
         button:disabled { background: #333; color: #666; }
-        .dmg { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 30px; pointer-events: none; animation: fly 0.7s linear forwards; z-index: 100; }
-        @keyframes fly { to { opacity: 0; transform: translateY(-100px); } }
-        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; }
+
+        /* АНИМАЦИЯ УРОНА */
+        .dmg { position: fixed; color: #ff4d4d; font-weight: bold; font-size: 32px; pointer-events: none; animation: fly 0.6s ease-out forwards; z-index: 1000; text-shadow: 0 0 10px rgba(255,0,0,0.5); }
+        @keyframes fly { 
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
+        }
+
+        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; }
         .win { background: #1a1a1a; margin: 40px auto; width: 85%; border-radius: 20px; padding: 20px; border: 1px solid #ff4d4d; max-height: 70vh; overflow-y: auto; }
-        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -32,22 +50,26 @@
         <div class="rank-btn" onclick="showRank()">🏆</div>
     </div>
     <div class="stats-panel">
-        <div style="font-size:12px;opacity:0.6">HP БОССА</div>
-        <div id="hp" style="font-size:24px;font-weight:bold;color:#ff4d4d">1,000,000</div>
-        <div style="color:#ffd700;font-size:22px;margin-top:5px">🪙 <span id="bl">0</span></div>
+        <div style="font-size:12px;opacity:0.6;letter-spacing:1px">HP БОССА</div>
+        <div id="hp" style="font-size:26px;font-weight:bold;color:#ff4d4d">1,000,000</div>
+        <div style="color:#ffd700;font-size:24px;margin-top:5px;font-weight:bold">🪙 <span id="bl">0</span></div>
     </div>
+
     <div id="boss-container">
+        <div class="magic-circle"></div>
         <img id="boss" src="boss.png" onmousedown="hit(event)" ontouchstart="hit(event)">
     </div>
+
     <div class="shop">
         <div class="card">Урон +1<button id="b1" onclick="buy('p')">0</button></div>
         <div class="card">Авто +1<button id="b2" onclick="buy('a')">0</button></div>
     </div>
+
     <div id="ov">
         <div class="win">
-            <h2 style="color:#ffd700">🏆 ТОП ЛИДЕРОВ</h2>
+            <h2 style="color:#ffd700;margin-bottom:20px">🏆 ТОП ЛИДЕРОВ</h2>
             <div id="list">Загрузка...</div>
-            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d;margin-top:20px">НАЗАД</button>
+            <button onclick="document.getElementById('ov').style.display='none'" style="background:#ff4d4d;margin-top:20px;padding:12px">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -55,30 +77,22 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // ПРОВЕРЬ ЭТИ ДАННЫЕ — ОНИ ДОЛЖНЫ БЫТЬ ТОЧНО ТАКИМИ
     const SB_URL = "https://oniwtglhvsczfmgijeco.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXd0Z2xodnNjemZtZ2lqZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjMzNTgsImV4cCI6MjA4NjczOTM1OH0.2ETnTI6c7Lw1qKvarX5fDp1RXyvBz8cqlR7YYyjYzHs";
-    
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
     const u = tg.initDataUnsafe?.user || {id: 777, first_name: "Игрок"};
     document.getElementById('un').innerText = "⚔️ " + u.first_name;
 
-    // Начальное состояние (защита от undefined)
     let s = { hp: 1000000, bl: 0, p: 1, a: 0, cP: 50, cA: 150 };
-    
-    // Загрузка
     const saved = localStorage.getItem('cw_v1');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        s = {...s, ...parsed}; // Смешиваем, чтобы не было пустых полей
-    }
+    if (saved) s = {...s, ...JSON.parse(saved)};
 
     function upd() {
-        document.getElementById('hp').innerText = (s.hp || 0).toLocaleString();
-        document.getElementById('bl').innerText = Math.floor(s.bl || 0).toLocaleString();
-        document.getElementById('b1').innerText = s.cP || 50;
-        document.getElementById('b2').innerText = s.cA || 150;
+        document.getElementById('hp').innerText = Math.floor(s.hp).toLocaleString();
+        document.getElementById('bl').innerText = Math.floor(s.bl).toLocaleString();
+        document.getElementById('b1').innerText = s.cP;
+        document.getElementById('b2').innerText = s.cA;
         document.getElementById('b1').disabled = s.bl < s.cP;
         document.getElementById('b2').disabled = s.bl < s.cA;
         localStorage.setItem('cw_v1', JSON.stringify(s));
@@ -86,26 +100,24 @@
 
     async function save() {
         try {
-            await sb.from('leaderboard').upsert({ 
-                id: u.id, 
-                name: u.first_name, 
-                score: Math.floor(s.bl) 
-            });
-        } catch(e) { console.log("Save error"); }
+            await sb.from('leaderboard').upsert({ id: u.id, name: u.first_name, score: Math.floor(s.bl) });
+        } catch(e) {}
     }
 
     function hit(e) {
         if(e.type==='touchstart') e.preventDefault();
         s.hp -= s.p; s.bl += s.p;
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         
+        // СОЗДАНИЕ АНИМАЦИИ ЦИФР
         const d = document.createElement('div');
         d.className='dmg'; d.innerText=`+${s.p}`;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        d.style.left=`${x}px`; d.style.top=`${y}px`;
+        d.style.left=`${x - 20}px`; d.style.top=`${y - 20}px`;
         document.body.appendChild(d);
-        setTimeout(()=>d.remove(), 700);
+        setTimeout(()=>d.remove(), 600);
+        
         upd();
     }
 
@@ -121,21 +133,14 @@
         const l = document.getElementById('list');
         l.innerText = "Загрузка...";
         try {
-            const { data, error } = await sb
-                .from('leaderboard')
-                .select('*')
-                .order('score', {ascending: false})
-                .limit(10);
-            
+            const { data, error } = await sb.from('leaderboard').select('*').order('score', {ascending: false}).limit(10);
             if (error) throw error;
             l.innerHTML = data.map((p,i)=>`
-                <div class="item">
+                <div class="item" style="${p.id == u.id ? 'background:rgba(255,215,0,0.1);border-radius:10px;' : ''}">
                     <span>${i+1}. ${p.name}</span>
                     <b style="color:#ffd700">${(p.score || 0).toLocaleString()}</b>
                 </div>`).join('');
-        } catch(e) { 
-            l.innerText = "Ошибка API. Проверь ключи!"; 
-        }
+        } catch(e) { l.innerText = "Ошибка доступа к рейтингу"; }
     }
 
     setInterval(() => { if(s.a > 0){ s.hp -= s.a; s.bl += s.a; upd(); } }, 1000);
